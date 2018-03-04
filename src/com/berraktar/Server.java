@@ -16,7 +16,7 @@ public class Server {
     private void runServer() throws IOException {
         // Szerver indítása
         ServerSocket serverSocket = new ServerSocket(PORT);
-        System.out.println("Server is running...");
+        System.out.println("A szerver elindult...");
 
         // TODO: Ide azért lehet hogy nem ártana valamilyen kilépési feltétel + hibakezelés
         // Új szál indítása minden csatlakozó kliensnek

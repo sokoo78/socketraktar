@@ -28,7 +28,7 @@ public class ServerThread extends Thread {
 
             // Új kliens bejelentkezés fogadása
             userName = (String) objectInputStream.readObject();
-            System.out.println("Új kliens csatlakozás: " + userName);
+            System.out.println("Új kliens csatlakozott: " + userName);
 
             // Beérkező objektumok feldolgozása
             while ((object = objectInputStream.readObject()) != null){
