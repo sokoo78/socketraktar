@@ -9,12 +9,14 @@ import java.net.Socket;
 
 public class ServerThread extends Thread {
 
+    // Socket átvétele a főszáltól
     Socket socket;
 
     ServerThread(Socket socket) {
         this.socket = socket;
     }
 
+    // Új szál indítása
     public void run() {
 
         Object object;
@@ -37,19 +39,21 @@ public class ServerThread extends Thread {
                     objectOutputStream.writeObject(object);
                 }
             }
+            // TODO: További beérkező objektumok feldolgozása
 
             // Zárjuk a kapcsolatot
             socket.close();
         } catch (IOException e) {
             System.out.println("Kliens bontotta a kapcsolatot: " + userName);
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            System.out.println("Kliens érvénytelen adatot küldött: " + userName);
         }
     }
 
+    // TODO: Példa eljárást átírni a véglegesre
     private void doFoglalas(Message message, String userName) {
         // Összeszorozzuk a két számot amit kaptunk az objektumban
         message.setResult(message.getFirstNumber().intValue() * message.getSecondNumber().intValue());
-        System.out.println("DoSomething procedure has been called by " + userName);
+        System.out.println("DoFoglalas eljárást hívta: " + userName);
     }
 }

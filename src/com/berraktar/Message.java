@@ -1,5 +1,6 @@
 package com.berraktar;
 
+// TODO Példa osztály, majd törölhető
 // Példa Serializable objektumra
 
 import java.io.Serializable;

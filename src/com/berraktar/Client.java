@@ -56,6 +56,7 @@ public class Client {
         oos.writeObject(userName);
     }
 
+    // TODO: Példa eljárást átírni a véglegesre
     private static void doFoglalas(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         Integer firstNumber = null;
@@ -78,12 +79,15 @@ public class Client {
         System.out.println("Eredmény: " + returnMessage.getResult());
     }
 
+    // TODO: Kifejtendő
     private static void doKiszallitas(ObjectOutputStream oos, ObjectInputStream ois) {
     }
 
+    // TODO: Kifejtendő
     private static void doUjKiszallitas(ObjectOutputStream oos, ObjectInputStream ois) {
     }
 
+    // TODO: Kifejtendő
     private static void doBeszallitas(ObjectOutputStream oos, ObjectInputStream ois) {
     }
 }

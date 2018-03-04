@@ -18,6 +18,7 @@ public class Server {
         ServerSocket serverSocket = new ServerSocket(PORT);
         System.out.println("Server is running...");
 
+        // TODO: Ide azért lehet hogy nem ártana valamilyen kilépési feltétel + hibakezelés
         // Új szál indítása minden csatlakozó kliensnek
         while (true) {
             Socket socket = serverSocket.accept();
