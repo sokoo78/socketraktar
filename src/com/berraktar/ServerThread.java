@@ -17,33 +17,37 @@ public class ServerThread extends Thread {
 
     public void run() {
 
-        Message message;
+        Object object;
+        String userName = null;
         try {
             // Ki-, és bemeneti csatornák létrhozása
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
 
             // Új kliens bejelentkezés fogadása
-            String userName = (String)objectInputStream.readObject();
+            userName = (String) objectInputStream.readObject();
             System.out.println("Új kliens csatlakozás: " + userName);
 
-            // Objektumok fogadása a klienstől
-            while ((message = (Message)objectInputStream.readObject()) != null) {
-                // Fogadott objektum feldolgozása
-                doSomething(message, userName);
-                // Feldolgozott objektum visszaküldése a kliensnek
-                objectOutputStream.writeObject(message);
+            // Beérkező objektumok feldolgozása
+            while ((object = objectInputStream.readObject()) != null){
+                // Message típusú üzenet feldolgozása
+                if (object instanceof Message ) {
+                    doFoglalas((Message)object, userName);
+                    // Feldolgozott objektum visszaküldése a kliensnek
+                    objectOutputStream.writeObject(object);
+                }
             }
+
             // Zárjuk a kapcsolatot
             socket.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Kliens bontotta a kapcsolatot: " + userName);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
 
-    private void doSomething(Message message, String userName) {
+    private void doFoglalas(Message message, String userName) {
         // Összeszorozzuk a két számot amit kaptunk az objektumban
         message.setResult(message.getFirstNumber().intValue() * message.getSecondNumber().intValue());
         System.out.println("DoSomething procedure has been called by " + userName);
