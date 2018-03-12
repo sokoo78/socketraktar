@@ -1,13 +1,8 @@
 package com.berraktar;
 
-public class Storekeeper {
-    private String name;
+public class Storekeeper extends Employee {
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+    public Storekeeper(String name, UserType position) {
+        super(name, position);
     }
 }

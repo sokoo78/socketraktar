@@ -8,7 +8,7 @@ import java.net.Socket;
 
 public class Server {
 
-    public static final int PORT = 4444;
+    public static final int PORT = 4445;
     public static void main(String[] args) throws IOException {
         new Server().runServer();
     }

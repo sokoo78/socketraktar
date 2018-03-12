@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Class-Path: C:\Users\sokoo\IdeaProjects\socketraktar\Client\
+Main-Class: com.berraktar.Client
+

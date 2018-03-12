@@ -52,8 +52,11 @@ public class Client {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         System.out.print("Felhasználó:");
         String userName = br.readLine();
+        System.out.print("Beosztás (1 - diszpécser, 2 - raktáros):");
+        int userPosition = Integer.parseInt(br.readLine());
         // Név küldése a szervernek
-        oos.writeObject(userName);
+        Employee employee = new Employee(userName, Employee.UserType.values()[userPosition]);
+        oos.writeObject(employee);
     }
 
     // TODO: Példa eljárást átírni a véglegesre
