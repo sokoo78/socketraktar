@@ -8,13 +8,20 @@ public class Worksheet implements Serializable {
     // Ez a szerializáláshoz kell
     private static final long serialVersionUID = -7149976626711109237L;
 
+    // Munkalaptípusok
+    public enum WorkType {Incoming, Outgoing}
+    public enum TransactionType {Initialize, Approve, Activate, Confirm, Cancel}
+
     // Munkalap tulajdonságai
-    private final int transactionID;     // Munkalap azonosító - sima futó sorszám
-    private final boolean isIncoming;   // Beszállítás vagy kiszállítás
+    private int transactionID;              // Munkalap azonosító - sima futó sorszám
+    private final WorkType workType;      // Beszállítás vagy kiszállítás
+    private TransactionType transaction;    // Végrehajtandó művelet
 
     // Állapotjelzők
-    private boolean isApproved;     // Teljesíthető az igény - szerver állítja be
-    private boolean isActive;       // Kocsi beérkezett - diszpécser kezeli
+    private boolean isInitialized = false;  // Van már tranzakcióazonosítója
+    private boolean isApproved = false;     // Teljesíthető az igény
+    private boolean isActive = false;       // Kocsi beérkezett
+    private boolean isConfirmed = false;    // Végrehajtva
 
     // Igénylési adatok - diszpécser adja meg
     private Renter renter;          // Bérlő
@@ -28,8 +35,51 @@ public class Worksheet implements Serializable {
     private Terminal terminal;
 
     // Konstruktor
-    public Worksheet(int transactionID, boolean isIncoming) {
+    public Worksheet(WorkType worktype) {
+        this.workType = worktype;
+    }
+
+    public int getTransactionID() {
+        return transactionID;
+    }
+
+    public void setTransactionID(int transactionID) {
         this.transactionID = transactionID;
-        this.isIncoming = isIncoming;
+    }
+
+    public WorkType getWorkType() {
+        return workType;
+    }
+
+    public boolean isApproved() {
+        return isApproved;
+    }
+
+    public void setApproved(boolean approved) {
+        isApproved = approved;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
+    }
+
+    public boolean isInitialized() {
+        return isInitialized;
+    }
+
+    public void setInitialized() {
+        isInitialized = true;
+    }
+
+    public TransactionType getTransaction() {
+        return transaction;
+    }
+
+    public void setTransaction(TransactionType transaction) {
+        this.transaction = transaction;
     }
 }

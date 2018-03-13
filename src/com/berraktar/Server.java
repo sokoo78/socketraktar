@@ -9,6 +9,8 @@ import java.net.Socket;
 public class Server {
 
     public static final int PORT = 4445;
+    public Warehouse warehouse = new Warehouse();
+
     public static void main(String[] args) throws IOException {
         new Server().runServer();
     }
@@ -22,7 +24,7 @@ public class Server {
         // Új szál indítása minden csatlakozó kliensnek
         while (true) {
             Socket socket = serverSocket.accept();
-            new ServerThread(socket).start();
+            new ServerThread(socket, warehouse).start();
         }
 
     }

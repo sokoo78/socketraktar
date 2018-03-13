@@ -4,6 +4,8 @@ package com.berraktar;
 
 import java.io.*;
 import java.net.Socket;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Client {
 
@@ -19,9 +21,16 @@ public class Client {
 
         // Menü
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        System.out.print("\nBérraktár menü:\n\t1. Új Foglalás\n\t2. Beszállítás\n\t3. Új kiszállítás\n\t4. Kiszállítás\n\t5. Kilépés\nVálassz menüpontot: ");
+        System.out.print("\nBérraktár menü:\n\t" +
+                "1. Új Foglalás\n\t" +
+                "2. Beszállítás\n\t" +
+                "3. Új kiszállítás\n\t" +
+                "4. Kiszállítás\n\t" +
+                "5. Teszt\n\t" +
+                "6. Kilépés\n" +
+                "Válassz menüpontot: ");
         String input = br.readLine();
-        while(!input.equals("5")){
+        while(!input.equals("6")){
             switch(input){
                 case "1":
                     doFoglalas(objectOutputStream, objectInputStream);
@@ -35,12 +44,22 @@ public class Client {
                 case "4":
                     doKiszallitas(objectOutputStream, objectInputStream);
                     break;
+                case "5":
+                    doTest(objectOutputStream, objectInputStream);
+                    break;
                 default:
                     System.out.println("A megadott menüpont nem létezik! (" + input + ")");
             }
             System.out.print("\nNyomj ENTER-t a folytatáshoz!");
             System.in.read();
-            System.out.print("\nBérraktár menü:\n\t1. Új Foglalás\n\t2. Beszállítás\n\t3. Új kiszállítás\n\t4. Kiszállítás\n\t5. Kilépés\nVálassz menüpontot: ");
+            System.out.print("\nBérraktár menü:\n\t" +
+                    "1. Új Foglalás\n\t" +
+                    "2. Beszállítás\n\t" +
+                    "3. Új kiszállítás\n\t" +
+                    "4. Kiszállítás\n\t" +
+                    "5. Teszt\n\t" +
+                    "6. Kilépés\n" +
+                    "Válassz menüpontot: ");
             input = br.readLine();
         }
 
@@ -48,6 +67,7 @@ public class Client {
         socket.close();
     }
 
+    // TODO: Buta login
     private static void DoBejelentkezes(ObjectOutputStream oos) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         System.out.print("Felhasználó:");
@@ -59,8 +79,42 @@ public class Client {
         oos.writeObject(employee);
     }
 
-    // TODO: Példa eljárást átírni a véglegesre
+    // TODO: Nincs kész
     private static void doFoglalas(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+
+        // Tranzakciószám kérése a szervertől
+        Worksheet worksheet = new Worksheet(Worksheet.WorkType.Incoming);
+        worksheet.setTransaction(Worksheet.TransactionType.Initialize);
+        oos.writeObject(worksheet);
+        worksheet = (Worksheet)ois.readObject();
+
+        // Kérelem adatainak bekérése
+        System.out.print("\nÚj munkalap létrehozva - Tranzakcióazonosító: " + worksheet.getTransactionID() + " (Init: " + worksheet.isInitialized() + ")");
+        System.out.print("\nVevőkód:");
+        String renterCode = br.readLine();
+        System.out.print("Cikkszám:");
+        String partNumber = br.readLine();
+        System.out.print("Raklapok száma:");
+        int palletNumber = Integer.parseInt(br.readLine());
+        System.out.print("Dátum (ÉÉÉÉ-HH-NN ÓÓ:PP):");
+        LocalDateTime reserveDate = LocalDateTime.parse(br.readLine(), DateTimeFormatter.ofPattern("uuuu.MM.dd HH:mm"));
+    }
+
+    // TODO: Kifejtendő
+    private static void doKiszallitas(ObjectOutputStream oos, ObjectInputStream ois) {
+    }
+
+    // TODO: Kifejtendő
+    private static void doUjKiszallitas(ObjectOutputStream oos, ObjectInputStream ois) {
+    }
+
+    // TODO: Kifejtendő
+    private static void doBeszallitas(ObjectOutputStream oos, ObjectInputStream ois) {
+    }
+
+    // Teszt metódus
+    private static void doTest(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         Integer firstNumber = null;
         Integer secondNumber = null;
@@ -82,15 +136,4 @@ public class Client {
         System.out.println("Eredmény: " + returnMessage.getResult());
     }
 
-    // TODO: Kifejtendő
-    private static void doKiszallitas(ObjectOutputStream oos, ObjectInputStream ois) {
-    }
-
-    // TODO: Kifejtendő
-    private static void doUjKiszallitas(ObjectOutputStream oos, ObjectInputStream ois) {
-    }
-
-    // TODO: Kifejtendő
-    private static void doBeszallitas(ObjectOutputStream oos, ObjectInputStream ois) {
-    }
 }

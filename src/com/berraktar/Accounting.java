@@ -49,9 +49,9 @@ public final class Accounting {
                 0);
 
         Map<String, Renter> testRenters = new HashMap<>();
-        testRenters.put("BEBE", renter_1);
-        testRenters.put("REZO", renter_2);
-        testRenters.put("GAPE", renter_3);
+        testRenters.put(renter_1.getCode(), renter_1);
+        testRenters.put(renter_2.getCode(), renter_2);
+        testRenters.put(renter_3.getCode(), renter_3);
         Accounting.setRenters(testRenters);
     }
 }

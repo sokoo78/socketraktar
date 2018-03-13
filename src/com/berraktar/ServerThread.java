@@ -11,9 +11,11 @@ public class ServerThread extends Thread {
 
     // Socket átvétele a főszáltól
     Socket socket;
+    Warehouse warehouse;
 
-    ServerThread(Socket socket) {
+    ServerThread(Socket socket, Warehouse warehouse) {
         this.socket = socket;
+        this.warehouse = warehouse;
     }
 
     // Új szál indítása
@@ -32,11 +34,15 @@ public class ServerThread extends Thread {
 
             // Beérkező objektumok feldolgozása
             while ((object = objectInputStream.readObject()) != null){
+
+                // Worksheet típusú üzenet feldolgozása
+                if (object instanceof Worksheet) {
+                    doWork(objectOutputStream, (Worksheet)object, employee.getName());
+                }
+
                 // Message típusú üzenet feldolgozása
                 if (object instanceof Message) {
-                    doFoglalas((Message)object, employee.getName());
-                    // Feldolgozott objektum visszaküldése a kliensnek
-                    objectOutputStream.writeObject(object);
+                    doTest(objectOutputStream, (Message)object, employee.getName());
                 }
             }
             // TODO: További beérkező objektumok feldolgozása
@@ -50,10 +56,34 @@ public class ServerThread extends Thread {
         }
     }
 
-    // TODO: Példa eljárást átírni a véglegesre
-    private void doFoglalas(Message message, String userName) {
+    // Munkalapokat feldolgozó metódus
+    private void doWork(ObjectOutputStream oos, Worksheet worksheet, String userName) throws IOException {
+        switch(worksheet.getTransaction()) {
+            // Új munkalap létrehozása
+            case Initialize:
+                worksheet = warehouse.CreateWorkSheet(worksheet.getWorkType());
+                oos.writeObject(worksheet);
+                System.out.println("DoWork/Initialize metódust hívta: " + userName);
+                break;
+            case Approve:
+                break;
+            case Activate:
+                break;
+            case Confirm:
+                break;
+            case Cancel:
+                break;
+            default:
+                System.out.println("DoWork metódust hibás tranzakcióazonosítóval hívta: " + userName);
+        }
+    }
+
+    // Teszt metódus
+    private void doTest(ObjectOutputStream oos, Message message, String userName) throws IOException {
         // Összeszorozzuk a két számot amit kaptunk az objektumban
         message.setResult(message.getFirstNumber().intValue() * message.getSecondNumber().intValue());
-        System.out.println("DoFoglalas eljárást hívta: " + userName);
+        System.out.println("DoTest metódust hívta: " + userName);
+        // Feldolgozott objektum visszaküldése a kliensnek
+        oos.writeObject(message);
     }
 }
