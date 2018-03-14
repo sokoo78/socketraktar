@@ -63,7 +63,7 @@ public class ServerThread extends Thread {
             case Initialize:
                 worksheet = warehouse.CreateWorkSheet(worksheet.getWorkType());
                 oos.writeObject(worksheet);
-                System.out.println("DoWork/Initialize metódust hívta: " + userName);
+                System.out.println("Új munkalapot hozott létre: " + userName);
                 break;
             case Approve:
                 break;

@@ -5,14 +5,15 @@ package com.berraktar;
 import java.io.*;
 import java.net.Socket;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 
 public class Client {
 
-    public static void main(String[] args) throws IOException, ClassNotFoundException, ParseException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
 
         // Socket kliens indítása és kapcsolódás a szerverhez
         Socket socket = new Socket("localhost", Server.PORT);
@@ -101,7 +102,8 @@ public class Client {
         System.out.print("Raklapok száma:");
         int palletNumber = Integer.parseInt(br.readLine());
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
-        Date reserveDate = readDate();
+        LocalDateTime reserveDate = readDate();
+        System.out.print("Idő kerekítve: " + printDate(reserveDate));
     }
 
     // TODO: Kifejtendő
@@ -117,21 +119,29 @@ public class Client {
     }
 
     // Dátum szkenner
-    private static Date readDate() throws IOException {
+    private static LocalDateTime readDate() throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm",
-                Locale.US);
-        System.out.println("Foglalás időpontja (Példa: " + format.format(new Date()) + "):");
-        Date date = null;
-        while (date == null) {
-            String line = br.readLine();
+        DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        System.out.println("Foglalás időpontja (Példa: " + printDate(LocalDateTime.now()) + "):");
+        LocalDateTime dateTime = null;
+        while (dateTime == null) {
+            String userinput = br.readLine();
             try {
-                date = format.parse(line);
-            } catch (ParseException e) {
-                System.out.println("Hibás dátumformátum! Add meg újra!");
+                dateTime = LocalDateTime.parse(userinput, format);
+            } catch (DateTimeParseException e) {
+                System.out.println("Hibás dátum formátum, próbáld újra!");
             }
         }
-        return date;
+        // Vágás 30 perces intervallumra
+        dateTime = dateTime.truncatedTo(ChronoUnit.HOURS).plusMinutes(30 * (dateTime.getMinute() / 30));
+        return dateTime;
+    }
+
+    // Dátum printer
+    private static String printDate(LocalDateTime localDateTime){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        String formattedDateTime = formatter.format(localDateTime);
+        return formattedDateTime;
     }
 
     // Teszt metódus
