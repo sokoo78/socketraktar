@@ -63,9 +63,12 @@ public class ServerThread extends Thread {
             case Initialize:
                 worksheet = warehouse.CreateWorkSheet(worksheet.getWorkType());
                 oos.writeObject(worksheet);
-                System.out.println("Új munkalapot hozott létre: " + userName);
+                System.out.println("Új munkalapot hozott létre (Azonosító: " + worksheet.getTransactionID() + ")" + userName);
                 break;
             case Approve:
+                worksheet = warehouse.ApproveWorkSheet(worksheet);
+                oos.writeObject(worksheet);
+                System.out.println("Munkalapot küldött jóváhagyásra (Azonosító: " + worksheet.getTransactionID() + ")" + userName);
                 break;
             case Activate:
                 break;

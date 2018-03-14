@@ -4,12 +4,26 @@ import java.io.Serializable;
 
 public class Employee implements Serializable {
 
+    // Ez a szerializációhoz kell
     private static final long serialVersionUID = 2435010565803855201L;
+
+    // Dolgozó típusok
     public enum UserType {Dispatcher, StoreKeeper}
+    // Dispatcher:  diszpécser
+    // StoreKeeper: raktáros
+
+    // Tranzakció flagek
+    public enum TransactionType {Login, Logout}
+    // Login: Bejelentkezési adatok ellenőrzése - szerver isLoggedin flaggel tér vissza
+    // Logout: Kijelentkezés
+
+    // Állapotjelzők
+    private boolean isLoggedin = false;
 
     // Dolgozók közös tulajdonságai
     private String name;
     private UserType position;
+    private String password;
 
     // Konstruktor (super)
     public Employee(String name, UserType position) {
@@ -33,5 +47,14 @@ public class Employee implements Serializable {
 
     public void setPosition(UserType position) {
         this.position = position;
+    }
+
+
+    public boolean isLoggedin() {
+        return isLoggedin;
+    }
+
+    public void setLoggedin(boolean loggedin) {
+        isLoggedin = loggedin;
     }
 }

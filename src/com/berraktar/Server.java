@@ -9,7 +9,7 @@ import java.net.Socket;
 public class Server {
 
     public static final int PORT = 4445;
-    public Warehouse warehouse = new Warehouse();
+    public Warehouse warehouse = new Warehouse(3000, 800, 9, 3);
 
     public static void main(String[] args) throws IOException {
         new Server().runServer();

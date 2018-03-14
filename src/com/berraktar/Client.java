@@ -4,8 +4,6 @@ package com.berraktar;
 
 import java.io.*;
 import java.net.Socket;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -24,6 +22,7 @@ public class Client {
         DoBejelentkezes(objectOutputStream);
 
         // Menü
+        // TODO: kitenni metódusba, raktáros, könyvelő (jelentések) menüt külön belehegeszteni
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         System.out.print("\nBérraktár menü:\n\t" +
                 "1. Új Foglalás\n\t" +
@@ -71,14 +70,14 @@ public class Client {
         socket.close();
     }
 
-    // TODO: Buta login
+    // TODO: Buta login, ellenőrzést és visszatérést betenni
     private static void DoBejelentkezes(ObjectOutputStream oos) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         System.out.print("Felhasználó:");
         String userName = br.readLine();
         System.out.print("Beosztás (1 - diszpécser, 2 - raktáros):");
         int userPosition = Integer.parseInt(br.readLine());
-        // Név küldése a szervernek
+        // Név és pozíció küldése a szervernek
         Employee employee = new Employee(userName, Employee.UserType.values()[userPosition]);
         oos.writeObject(employee);
     }
@@ -93,17 +92,31 @@ public class Client {
         oos.writeObject(worksheet);
         worksheet = (Worksheet)ois.readObject();
 
-        // Kérelem adatainak bekérése
+        // Kérelem adatainak bekérése a munkalapra
         System.out.print("\nÚj munkalap létrehozva - Tranzakcióazonosító: " + worksheet.getTransactionID() + " (Init: " + worksheet.isInitialized() + ")");
         System.out.print("\nVevőkód:");
-        String renterCode = br.readLine();
+        worksheet.setRenterID(br.readLine());
         System.out.print("Cikkszám:");
-        String partNumber = br.readLine();
+        worksheet.setExternalID(br.readLine());
         System.out.print("Raklapok száma:");
-        int palletNumber = Integer.parseInt(br.readLine());
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
-        LocalDateTime reserveDate = readDate();
-        System.out.print("Idő kerekítve: " + printDate(reserveDate));
+        worksheet.setNumberOfPallets(Integer.parseInt(br.readLine()));
+        worksheet.setReservedDate(readDate());
+        System.out.print("Idő kerekítve: " + printDate(worksheet.getReservedDate()));
+
+        // Foglalás adatainak ellenőrzése, előfoglalás
+        System.out.print("\nFoglalási adatok ellenőrzése.. ");
+        worksheet.setTransaction(Worksheet.TransactionType.Approve);
+        oos.writeObject(worksheet);
+        worksheet = (Worksheet)ois.readObject();
+        if (worksheet.isApproved()) {
+            System.out.print("Foglalási adatok elfogadva!");
+        }
+        else {
+            System.out.print("Foglalási adatok elutasítva!");
+            System.out.print("\nSzerver üzenete:" + worksheet.getTransactionMessage());
+        }
+
+        // TODO: Foglalás jóváhagyása, vagy törlése
     }
 
     // TODO: Kifejtendő
