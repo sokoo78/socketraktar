@@ -1,5 +1,6 @@
 package com.berraktar;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,8 +31,16 @@ public class Warehouse implements Serializable {
         this.maxNormalTerminal = maxNormalTerminal;
         this.maxCooledTerminal = maxCooledTerminal;
 
-        // TODO: induláskor adatokat betölteni
-        workCounter = new AtomicInteger(0);
+        // Adatok betöltése
+        if (new File("WorkSheets.ser").exists()) {
+            this.worksheets = (ConcurrentHashMap<Integer, Worksheet>) Persistency.LoadObject("WorkSheets.ser");
+        }
+        if (new File("WorkCounter.ser").exists()) {
+            this.workCounter = (AtomicInteger) Persistency.LoadObject("WorkCounter.ser");
+        }
+        else {
+            workCounter = new AtomicInteger(0);
+        }
     }
 
     // Új munkalap létrehozása
@@ -47,6 +56,7 @@ public class Warehouse implements Serializable {
     // Munkalap adatainak ellenőrzése, előfoglalás
     public Worksheet ApproveWorkSheet(Worksheet worksheet) {
         boolean checksPassed = true;
+        String errorMessage = "szar van a palacsintában";
         // TODO: 1. Bérlőt ellenőrizni, hogy létezik-e --> Accounting osztály --> getRenter(String renter)
         // TODO: 2. Bérlő szabad kapacitását ellenőrizni, hogy teljesíthető-e az igény --> Renter osztály --> getFreeSpace(int noOfPallets, bool isCooled)
         // TODO: 3. Ha minden fasza, akkor a dátum alapján ellenőrizni + foglalni kell terminált --> ezt még meg kell szülni, hogy hogyan legyen
@@ -56,10 +66,13 @@ public class Warehouse implements Serializable {
         if (checksPassed) {
             worksheet.setApproved();
             worksheets.put(worksheet.getTransactionID(),worksheet);
+            // Munkalapok mentése fájlba
+            Persistency.SaveObject(this.worksheets, "WorkSheets.ser");
+            Persistency.SaveObject(this.workCounter, "WorkCounter.ser");
         }
         // TODO: 5. Ha valami szar, hibaüzit beállítani
         else {
-            worksheet.setTransactionMessage("szar van a palacsintában");
+            worksheet.setTransactionMessage(errorMessage);
         }
         return worksheet;
     }

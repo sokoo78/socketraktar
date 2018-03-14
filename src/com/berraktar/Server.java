@@ -26,7 +26,6 @@ public class Server {
             Socket socket = serverSocket.accept();
             new ServerThread(socket, warehouse).start();
         }
-
     }
 
 }
