@@ -4,12 +4,15 @@ package com.berraktar;
 
 import java.io.*;
 import java.net.Socket;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class Client {
 
-    public static void main(String[] args) throws IOException, ClassNotFoundException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException, ParseException {
 
         // Socket kliens indítása és kapcsolódás a szerverhez
         Socket socket = new Socket("localhost", Server.PORT);
@@ -97,8 +100,8 @@ public class Client {
         String partNumber = br.readLine();
         System.out.print("Raklapok száma:");
         int palletNumber = Integer.parseInt(br.readLine());
-        System.out.print("Dátum (ÉÉÉÉ-HH-NN ÓÓ:PP):");
-        LocalDateTime reserveDate = LocalDateTime.parse(br.readLine(), DateTimeFormatter.ofPattern("uuuu.MM.dd HH:mm"));
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
+        Date reserveDate = readDate();
     }
 
     // TODO: Kifejtendő
@@ -111,6 +114,24 @@ public class Client {
 
     // TODO: Kifejtendő
     private static void doBeszallitas(ObjectOutputStream oos, ObjectInputStream ois) {
+    }
+
+    // Dátum szkenner
+    private static Date readDate() throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm",
+                Locale.US);
+        System.out.println("Foglalás időpontja (Példa: " + format.format(new Date()) + "):");
+        Date date = null;
+        while (date == null) {
+            String line = br.readLine();
+            try {
+                date = format.parse(line);
+            } catch (ParseException e) {
+                System.out.println("Hibás dátumformátum! Add meg újra!");
+            }
+        }
+        return date;
     }
 
     // Teszt metódus
