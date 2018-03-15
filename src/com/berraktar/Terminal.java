@@ -1,28 +1,39 @@
 package com.berraktar;
 
-import java.util.List;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
-public class Terminal {
+public class Terminal implements Serializable {
+    // Szerializációhoz kell
+    private static final long serialVersionUID = 4217347426722612092L;
+
+    // Lokáció tulajdonságai
     private final int id;
-    private List<Integer> palletIDList;
+    private Map<String, Pallet> palletList = new HashMap<String, Pallet>();
 
+    // Konstruktor
     public Terminal(int id) {
         this.id = id;
     }
 
-    public List<Integer> getPallets() {
-        return palletIDList;
+    // Getterek, Setterek
+
+    public Map<String, Pallet> getPalletList() {
+        return palletList;
     }
 
-    public void setPallets(List<Integer> pallets) {
-        this.palletIDList = pallets;
+    public void setPalletList(Map<String, Pallet> palletList) {
+        this.palletList = palletList;
     }
 
-    public void shipPallets(){
-        this.palletIDList.clear();
+    public void addPallet(Pallet pallet){
+        palletList.put(pallet.getInternalPartNumber(), pallet);
     }
 
-    public void addPallet(int palletID){
-        this.palletIDList.add(palletID);
+    public Pallet takePallet(String palletID){
+        Pallet _pallet = palletList.get(palletID);
+        palletList.remove(palletID);
+        return _pallet;
     }
 }

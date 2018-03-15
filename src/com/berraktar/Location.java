@@ -2,23 +2,24 @@ package com.berraktar;
 
 public class Location {
     private final int locationID;
-    private int palletID = 0;
+    private Pallet pallet = new Pallet();
 
+    // Konstruktor
     public Location(int id){
         this.locationID = id;
     }
 
-    public int getPalletID() {
-        return palletID;
+    public Pallet scanPallet(){
+        return this.pallet.scanPallet();
     }
 
-    public void addPallet(int palletID) {
-        this.palletID = palletID;
+    public void addPallet(Pallet pallet) {
+        this.pallet = pallet;
     }
 
-    public int takePallet() {
-        int _palletID = this.palletID;
-        this.palletID = 0;
-        return _palletID;
+    public Pallet takePallet() {
+        Pallet _pallet = this.pallet;
+        this.pallet = null;
+        return _pallet;
     }
 }

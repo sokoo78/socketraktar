@@ -30,9 +30,11 @@ public class ServerThread extends Thread {
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
 
-            // Új kliens bejelentkezés fogadása
+            // Új kliens bejelentkezés fogadása - TODO logint felokosítani, ha kell..
             employee = (Employee)objectInputStream.readObject();
+            employee.setLoggedin();
             System.out.println("Új kliens csatlakozott: " + employee.getName() + ", " + employee.getPosition());
+            objectOutputStream.writeObject(employee);
 
             // Beérkező objektumok feldolgozása
             while ((object = objectInputStream.readObject()) != null){

@@ -19,42 +19,19 @@ public class Client {
         ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
 
         // Bejelentkezés
-        DoBejelentkezes(objectOutputStream);
+        Employee employee = DoBejelentkezes(objectInputStream, objectOutputStream);
 
-        // Menü
-        // TODO: kitenni metódusba, raktáros, könyvelő (jelentések) menüt külön belehegeszteni
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        System.out.print("\nBérraktár menü:\n\t" +
-                "1. Új Foglalás\n\t" +
-                "2. Beszállítás\n\t" +
-                "3. Új kiszállítás\n\t" +
-                "4. Kiszállítás\n\t" +
-                "5. Teszt\n\t" +
-                "6. Kilépés\n" +
-                "Válassz menüpontot: ");
-        String input = br.readLine();
-        while(!input.equals("6")){
-            switch(input){
-                case "1":
-                    doFoglalas(objectOutputStream, objectInputStream);
-                    break;
-                case "2":
-                    doBeszallitas(objectOutputStream, objectInputStream);
-                    break;
-                case "3":
-                    doUjKiszallitas(objectOutputStream, objectInputStream);
-                    break;
-                case "4":
-                    doKiszallitas(objectOutputStream, objectInputStream);
-                    break;
-                case "5":
-                    doTest(objectOutputStream, objectInputStream);
-                    break;
-                default:
-                    System.out.println("A megadott menüpont nem létezik! (" + input + ")");
-            }
-            System.out.print("\nNyomj ENTER-t a folytatáshoz!");
-            System.in.read();
+        // Menü megjelenítése
+        showMenu(employee.getPositionID(), objectOutputStream, objectInputStream);
+
+        // Kapcsolat bontása
+        socket.close();
+    }
+
+    private static void showMenu(int positionID, ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+        // Diszpécser menü
+        if (positionID == 1){
+            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             System.out.print("\nBérraktár menü:\n\t" +
                     "1. Új Foglalás\n\t" +
                     "2. Beszállítás\n\t" +
@@ -63,23 +40,62 @@ public class Client {
                     "5. Teszt\n\t" +
                     "6. Kilépés\n" +
                     "Válassz menüpontot: ");
-            input = br.readLine();
+            String input = br.readLine();
+            while(!input.equals("6")){
+                switch(input){
+                    case "1":
+                        doFoglalas(oos, ois);
+                        break;
+                    case "2":
+                        doBeszallitas(oos, ois);
+                        break;
+                    case "3":
+                        doUjKiszallitas(oos, ois);
+                        break;
+                    case "4":
+                        doKiszallitas(oos, ois);
+                        break;
+                    case "5":
+                        doTest(oos, ois);
+                        break;
+                    default:
+                        System.out.println("A megadott menüpont nem létezik! (" + input + ")");
+                }
+                System.out.print("\nNyomj ENTER-t a folytatáshoz!");
+                System.in.read();
+                System.out.print("\nBérraktár menü:\n\t" +
+                        "1. Új Foglalás\n\t" +
+                        "2. Beszállítás\n\t" +
+                        "3. Új kiszállítás\n\t" +
+                        "4. Kiszállítás\n\t" +
+                        "5. Teszt\n\t" +
+                        "6. Kilépés\n" +
+                        "Válassz menüpontot: ");
+                input = br.readLine();
+            }
         }
-
-        // Kapcsolat bontása
-        socket.close();
+        // TODO: Raktáros menü
+        // TODO: Könyvelés menü (lekérdezések)
     }
 
     // TODO: Buta login, ellenőrzést és visszatérést betenni
-    private static void DoBejelentkezes(ObjectOutputStream oos) throws IOException {
+    private static Employee DoBejelentkezes(ObjectInputStream ois, ObjectOutputStream oos) throws IOException, ClassNotFoundException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         System.out.print("Felhasználó:");
         String userName = br.readLine();
         System.out.print("Beosztás (1 - diszpécser, 2 - raktáros):");
-        int userPosition = Integer.parseInt(br.readLine());
+        int userPosition = Integer.parseInt(br.readLine())-1;
         // Név és pozíció küldése a szervernek
         Employee employee = new Employee(userName, Employee.UserType.values()[userPosition]);
         oos.writeObject(employee);
+        // Bejelentkezés ellenőrzése
+        employee = (Employee) ois.readObject();
+        if (employee.isLoggedin()){
+            System.out.print("Sikeres bejelentkezés: " + employee.getName() + ", " + employee.getPosition());
+        } else {
+            System.out.print("Sikertelen bejelentkezés!");
+        }
+        return employee;
     }
 
     // TODO: Nincs kész
@@ -179,5 +195,4 @@ public class Client {
         Message returnMessage = (Message)ois.readObject();
         System.out.println("Eredmény: " + returnMessage.getResult());
     }
-
 }

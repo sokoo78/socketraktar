@@ -125,19 +125,24 @@ public class Warehouse implements Serializable {
     private synchronized int reserveTerminal(boolean isCooled, LocalDateTime reserveDate){
         List<Integer> terminalList;
         int maxTerminals;
+
+        // Hűtött terminál
         if (isCooled){
             terminalList = this.reservedCooledTerminals.get(reserveDate);
             maxTerminals = this.getMaxCooledTerminal();
-        } else {
+        }
+        // Normál terminál
+        else {
             terminalList = this.reservedNormalTerminals.get(reserveDate);
             maxTerminals = this.getMaxNormalTerminal();
         }
         // Van-e szabad terminál
         int listSize;
+        // Ha a megadott dátum alatt létezik már terminállista, akkor hozzá kell adni az új foglalást
         if (terminalList != null) {
             listSize = this.reservedNormalTerminals.get(reserveDate).size();
             if (listSize < maxTerminals) {
-                // Első szabad terminál sorszámának keresése
+                // Első szabad terminál sorszámának keresése és visszaadása
                 for (int i = 1; i < maxTerminals; i++){
                     if (!terminalList.contains(i)){
                         terminalList.add(i);
@@ -145,7 +150,9 @@ public class Warehouse implements Serializable {
                     }
                 }
             }
-        } else {
+        }
+        // Ha a megadott dátum alatt még nem létezik terminállista, akkor létre kell hozni a listát
+        else {
             List<Integer> reserveList = new ArrayList<>();
             reserveList.add(1);
             if (isCooled){
@@ -155,6 +162,7 @@ public class Warehouse implements Serializable {
             }
             return 1;
         }
+        // Sikertelen foglalás
         return 0;
     }
 

@@ -1,30 +1,38 @@
 package com.berraktar;
 
 public class Pallet {
-    private String internalId;
-    private String externalId;
+    private String internalPartNumber;
+    private String externalPartNumber;
     private String renterID;
 
-    public Pallet(String internalId, String externalId, String renterID) {
-        this.internalId = internalId;
-        this.externalId = externalId;
+
+    // Konstruktorok
+    public Pallet() {}
+
+    public Pallet(String internalPartNumber, String externalPartNumber, String renterID) {
+        this.internalPartNumber = internalPartNumber;
+        this.externalPartNumber = externalPartNumber;
         this.renterID = renterID;
     }
 
-    public String getInternalId() {
-        return internalId;
+    public Pallet scanPallet(){
+        return this;
     }
 
-    public void setInternalId(String internalId) {
-        this.internalId = internalId;
+    public String getInternalPartNumber() {
+        return internalPartNumber;
     }
 
-    public String getExternalId() {
-        return externalId;
+    public void setInternalPartNumber(String internalPartNumber) {
+        this.internalPartNumber = internalPartNumber;
     }
 
-    public void setExternalId(String externalId) {
-        this.externalId = externalId;
+    public String getExternalPartNumber() {
+        return externalPartNumber;
+    }
+
+    public void setExternalPartNumber(String externalPartNumber) {
+        this.externalPartNumber = externalPartNumber;
     }
 
     public String getRenterID() {
