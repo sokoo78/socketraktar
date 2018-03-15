@@ -12,10 +12,12 @@ public class ServerThread extends Thread {
     // Socket átvétele a főszáltól
     Socket socket;
     Warehouse warehouse;
+    Accounting accounting;
 
-    ServerThread(Socket socket, Warehouse warehouse) {
+    ServerThread(Socket socket, Warehouse warehouse, Accounting accounting) {
         this.socket = socket;
         this.warehouse = warehouse;
+        this.accounting = accounting;
     }
 
     // Új szál indítása
@@ -50,9 +52,9 @@ public class ServerThread extends Thread {
             // Zárjuk a kapcsolatot
             socket.close();
         } catch (IOException e) {
-            System.out.println("Kliens bontotta a kapcsolatot: " + employee.getName());
+            System.out.println(employee.getName() + " bontotta a kapcsolatot ");
         } catch (ClassNotFoundException e) {
-            System.out.println("Kliens érvénytelen adatot küldött: " + employee.getName());
+            System.out.println(employee.getName() + " érvénytelen adatot küldött ");
         }
     }
 
@@ -63,21 +65,30 @@ public class ServerThread extends Thread {
             case Initialize:
                 worksheet = warehouse.CreateWorkSheet(worksheet.getWorkType());
                 oos.writeObject(worksheet);
-                System.out.println("Új munkalapot hozott létre (Azonosító: " + worksheet.getTransactionID() + ")" + userName);
+                System.out.println(userName + " új munkalapot hozott létre - TransactionID: " + worksheet.getTransactionID());
                 break;
             case Approve:
-                worksheet = warehouse.ApproveWorkSheet(worksheet);
+                worksheet = warehouse.ApproveWorkSheet(worksheet, accounting);
                 oos.writeObject(worksheet);
-                System.out.println("Munkalapot küldött jóváhagyásra (Azonosító: " + worksheet.getTransactionID() + ")" + userName);
+                System.out.println(userName + " munkalapot küldött jóváhagyásra - TransactionID: " + worksheet.getTransactionID());
                 break;
             case Activate:
+                worksheet = warehouse.ActivateWorkSheet(worksheet);
+                oos.writeObject(worksheet);
+                System.out.println(userName + " munkalapot küldött aktiválásra - TransactionID: " + worksheet.getTransactionID());
                 break;
             case Confirm:
+                worksheet = warehouse.ConfirmWorkSheet(worksheet);
+                oos.writeObject(worksheet);
+                System.out.println(userName + " munkalapot küldött befejezésre - TransactionID: " + worksheet.getTransactionID());
                 break;
             case Cancel:
+                worksheet = warehouse.CancelWorkSheet(worksheet);
+                oos.writeObject(worksheet);
+                System.out.println(userName + " munkalapot küldött lemondásra - TransactionID: " + worksheet.getTransactionID());
                 break;
             default:
-                System.out.println("DoWork metódust hibás tranzakcióazonosítóval hívta: " + userName);
+                System.out.println(userName + " a DoWork metódust hibás tranzakcióazonosítóval hívta - " + worksheet.getTransaction());
         }
     }
 

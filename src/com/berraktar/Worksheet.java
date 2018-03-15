@@ -42,8 +42,8 @@ public class Worksheet implements Serializable {
     private int numberOfPallets;            // Paletták száma
 
     // Tárolási adatok - szerver adja meg
-    private Location location;
-    private Terminal terminal;
+    private int locationID;
+    private int terminalID;
 
     // Konstruktor
     public Worksheet(WorkType worktype) {
@@ -75,8 +75,8 @@ public class Worksheet implements Serializable {
         return isActive;
     }
 
-    public void setActive(boolean active) {
-        isActive = active;
+    public void setActive() {
+        isActive = true;
     }
 
     public boolean isInitialized() {
@@ -123,8 +123,8 @@ public class Worksheet implements Serializable {
         return isCooled;
     }
 
-    public void setCooled(boolean cooled) {
-        isCooled = cooled;
+    public void setCooled() {
+        isCooled = true;
     }
 
     public int getNumberOfPallets() {
@@ -141,5 +141,37 @@ public class Worksheet implements Serializable {
 
     public void setTransactionMessage(String transactionMessage) {
         this.transactionMessage = transactionMessage;
+    }
+
+    public boolean isConfirmed() {
+        return isConfirmed;
+    }
+
+    public void setConfirmed() {
+        isConfirmed = true;
+    }
+
+    public boolean isCancelled() {
+        return isCancelled;
+    }
+
+    public void setCancelled() {
+        isCancelled = true;
+    }
+
+    public int getLocationID() {
+        return locationID;
+    }
+
+    public void setLocationID(int locationID) {
+        this.locationID = locationID;
+    }
+
+    public int getTerminalID() {
+        return terminalID;
+    }
+
+    public void setTerminalID(int terminalID) {
+        this.terminalID = terminalID;
     }
 }

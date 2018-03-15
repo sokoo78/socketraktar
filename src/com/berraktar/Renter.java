@@ -22,42 +22,39 @@ public class Renter implements Serializable {
         this.numberOfLogisticsOperations = numberOfLogisticsOperations;
     }
 
+    public int getFreeLocations(boolean isCooled){
+        if (isCooled){
+            return this.freeCooledLocations;
+        }
+        return this.freeNormalLocations;
+    }
+
     // Logisztikai műveletek hozzáadása
     public void addLogisticsOperations(int numberOfOperations){
         this.numberOfLogisticsOperations += numberOfOperations;
     }
 
-    // Szabad normál lokációk csökkentése
-    public boolean decreaseFreeNormalSpace(int byNumberOfSpaces){
-        if (byNumberOfSpaces <= this.freeNormalLocations){
-            this.freeNormalLocations -= byNumberOfSpaces;
+    // Szabad normál lokációk növelése
+    public boolean increaseFreeSpace(boolean isCooled, int byNumberOfSpaces){
+        if (isCooled & ((freeCooledLocations + byNumberOfSpaces) <= this.rentedCooledLocations)){
+            this.freeCooledLocations += byNumberOfSpaces;
             return true;
         }
-        return false;
-    }
-
-    // Szabad normál lokációk növelése
-    public boolean increaseFreeNormalSpace(int byNumberOfSpaces){
-        if ((this.freeNormalLocations + byNumberOfSpaces) <= this.rentedNormalLocations){
+        if (!isCooled & ((rentedNormalLocations + byNumberOfSpaces) <= this.rentedNormalLocations)){
             this.freeNormalLocations += byNumberOfSpaces;
             return true;
         }
         return false;
     }
 
-    // Szabad hűtött lokációk csökkentése
-    public boolean decreaseFreeCooledSpace(int byNumberOfSpaces){
-        if (byNumberOfSpaces <= this.freeCooledLocations){
+    // Szabad normál lokációk csökkentése
+    public boolean decreaseFreeSpace(boolean isCooled, int byNumberOfSpaces){
+        if (isCooled & (byNumberOfSpaces <= this.freeCooledLocations)){
             this.freeCooledLocations -= byNumberOfSpaces;
             return true;
         }
-        return false;
-    }
-
-    // Szabad hűtött lokációk növelése
-    public boolean increaseFreeCooledSpace(int byNumberOfSpaces){
-        if ((this.freeCooledLocations + byNumberOfSpaces) <= this.rentedCooledLocations){
-            this.freeCooledLocations += byNumberOfSpaces;
+        if (!isCooled & (byNumberOfSpaces <= this.freeNormalLocations)){
+            this.freeNormalLocations -= byNumberOfSpaces;
             return true;
         }
         return false;

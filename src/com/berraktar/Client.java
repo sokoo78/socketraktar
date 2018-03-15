@@ -93,7 +93,7 @@ public class Client {
         worksheet = (Worksheet)ois.readObject();
 
         // Kérelem adatainak bekérése a munkalapra
-        System.out.print("\nÚj munkalap létrehozva - Tranzakcióazonosító: " + worksheet.getTransactionID() + " (Init: " + worksheet.isInitialized() + ")");
+        System.out.print("\nÚj munkalap létrehozva - Tranzakcióazonosító: " + worksheet.getTransactionID() + " (isInitialized: " + worksheet.isInitialized() + ")");
         System.out.print("\nVevőkód:");
         worksheet.setRenterID(br.readLine());
         System.out.print("Cikkszám:");

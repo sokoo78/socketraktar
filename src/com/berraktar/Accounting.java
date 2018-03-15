@@ -3,20 +3,25 @@ package com.berraktar;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class Accounting {
-    private static Map<String, Renter> renters;
+public class Accounting {
+    private Map<String, Renter> renters;
 
     // Konstruktor - TODO: teszt adatok helyett majd fájlból kell betölteni a bérlőket
     public Accounting(){
         this.createTestRenters();
     }
 
-    public static Map<String, Renter> getRenters() {
-        return renters;
+    public Renter getRenter(String renterID){
+        Renter renter = this.renters.get(renterID);
+        return renter;
     }
 
-    private static void setRenters(Map<String, Renter> renters) {
-        Accounting.renters = renters;
+    public Map<String, Renter> getRenters() {
+        return this.renters;
+    }
+
+    private void setRenters(Map<String, Renter> renters) {
+        this.renters = renters;
     }
 
     // Teszt bérlők
@@ -24,7 +29,7 @@ public final class Accounting {
         Renter renter_1 = new Renter(
                 "Bérlő Béla",
                 "BEBE",
-                20,
+                50,
                 0,
                 20,
                 0,
@@ -34,7 +39,7 @@ public final class Accounting {
                 "Renter Zoli",
                 "REZO",
                 20,
-                0,
+                10,
                 20,
                 0,
                 0);
@@ -42,16 +47,16 @@ public final class Accounting {
         Renter renter_3 = new Renter(
                 "Gazdag Peti",
                 "GAPE",
-                20,
                 0,
-                20,
+                50,
                 0,
+                5,
                 0);
 
         Map<String, Renter> testRenters = new HashMap<>();
         testRenters.put(renter_1.getCode(), renter_1);
         testRenters.put(renter_2.getCode(), renter_2);
         testRenters.put(renter_3.getCode(), renter_3);
-        Accounting.setRenters(testRenters);
+        this.setRenters(testRenters);
     }
 }

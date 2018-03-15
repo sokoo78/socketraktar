@@ -4,38 +4,25 @@ import java.util.List;
 
 public class Terminal {
     private final int id;
-    private final boolean isCooled;
-    private boolean isFree;
-    private List<Pallet> pallets;
+    private List<Integer> palletIDList;
 
-    public Terminal(int id, boolean isCooled) {
+    public Terminal(int id) {
         this.id = id;
-        this.isCooled = isCooled;
-        this.isFree = true;
     }
 
-    public boolean isFree() {
-        return isFree;
+    public List<Integer> getPallets() {
+        return palletIDList;
     }
 
-    private void setFree() {
-        this.isFree = true;
-    }
-
-    public void setReserved() {
-        this.isFree = false;
-    }
-
-    public List<Pallet> getPallets() {
-        return pallets;
-    }
-
-    public void setPallets(List<Pallet> pallets) {
-        this.pallets = pallets;
+    public void setPallets(List<Integer> pallets) {
+        this.palletIDList = pallets;
     }
 
     public void shipPallets(){
-        this.pallets = null;
-        this.setFree();
+        this.palletIDList.clear();
+    }
+
+    public void addPallet(int palletID){
+        this.palletIDList.add(palletID);
     }
 }
