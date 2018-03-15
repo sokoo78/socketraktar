@@ -48,6 +48,11 @@ public class ServerThread extends Thread {
                 if (object instanceof Message) {
                     doTest(objectOutputStream, (Message)object, employee.getName());
                 }
+
+                // Report típusú üzenet feldolgozása
+                if (object instanceof Report) {
+                    doReport(objectOutputStream, (Report)object, employee.getName());
+                }
             }
             // TODO: További beérkező objektumok feldolgozása
 
@@ -57,6 +62,26 @@ public class ServerThread extends Thread {
             System.out.println(employee.getName() + " bontotta a kapcsolatot ");
         } catch (ClassNotFoundException e) {
             System.out.println(employee.getName() + " érvénytelen adatot küldött ");
+        }
+    }
+
+    private void doReport(ObjectOutputStream oos, Report report, String userName) throws IOException {
+        switch (report.getReport()){
+            case Renters:
+                report = warehouse.RenterReport(report);
+                oos.writeObject(report);
+                System.out.println(userName + " jelentést kért: "); // + report.getReport());
+                break;
+            case Worksheets:
+                report = warehouse.WorksheetReport(report);
+                oos.writeObject(report);
+                System.out.println(userName + " jelentést kért: "); // + report.getReport());
+                break;
+            case Locations:
+                report = warehouse.LocationReport(report);
+                oos.writeObject(report);
+                System.out.println(userName + " jelentést kért: "); // + report.getReport());
+                break;
         }
     }
 

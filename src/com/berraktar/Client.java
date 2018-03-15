@@ -32,7 +32,7 @@ public class Client {
         // Diszpécser menü
         if (positionID == 1){
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-            System.out.print("\nBérraktár menü:\n\t" +
+            System.out.print("\nBérraktár diszpécser menü:\n\t" +
                     "1. Új Foglalás\n\t" +
                     "2. Beszállítás\n\t" +
                     "3. Új kiszállítás\n\t" +
@@ -63,7 +63,7 @@ public class Client {
                 }
                 System.out.print("\nNyomj ENTER-t a folytatáshoz!");
                 System.in.read();
-                System.out.print("\nBérraktár menü:\n\t" +
+                System.out.print("\nBérraktár diszpécser menü:\n\t" +
                         "1. Új Foglalás\n\t" +
                         "2. Beszállítás\n\t" +
                         "3. Új kiszállítás\n\t" +
@@ -75,7 +75,48 @@ public class Client {
             }
         }
         // TODO: Raktáros menü
-        // TODO: Könyvelés menü (lekérdezések)
+        // Diszpécser menü
+        if (positionID == 3){
+            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+            System.out.print("\nBérraktár könyvelés menü:\n\t" +
+                    "1. Ügyfél lista\n\t" +
+                    "2. Munkalap lista\n\t" +
+                    "3. Lokáció lista\n\t" +
+                    "4. Kilépés\n" +
+                    "Válassz menüpontot: ");
+            String input = br.readLine();
+            while(!input.equals("6")){
+                switch(input){
+                    case "1":
+                        GetReport(oos, ois, Report.ReportType.Renters);
+                        break;
+                    case "2":
+                        GetReport(oos, ois, Report.ReportType.Worksheets);
+                        break;
+                    case "3":
+                        GetReport(oos, ois, Report.ReportType.Locations);
+                        break;
+                    default:
+                        System.out.println("A megadott menüpont nem létezik! (" + input + ")");
+                }
+                System.out.print("\nNyomj ENTER-t a folytatáshoz!");
+                System.in.read();
+                System.out.print("\nBérraktár könyvelés menü:\n\t" +
+                        "1. Ügyfél lista\n\t" +
+                        "2. Munkalap lista\n\t" +
+                        "3. Lokáció lista\n\t" +
+                        "4. Kilépés\n" +
+                        "Válassz menüpontot: ");
+                input = br.readLine();
+            }
+        }
+    }
+
+    private static void GetReport(ObjectOutputStream oos, ObjectInputStream ois, Report.ReportType reportType) throws IOException, ClassNotFoundException {
+        Report report = new Report(reportType);
+        oos.writeObject(report);
+        report = (Report) ois.readObject();
+        System.out.println(report.getReply());
     }
 
     // TODO: Buta login, ellenőrzést és visszatérést betenni
@@ -83,7 +124,7 @@ public class Client {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         System.out.print("Felhasználó:");
         String userName = br.readLine();
-        System.out.print("Beosztás (1 - diszpécser, 2 - raktáros):");
+        System.out.print("Beosztás (1 - diszpécser, 2 - raktáros, 3 - könyvelő):");
         int userPosition = Integer.parseInt(br.readLine())-1;
         // Név és pozíció küldése a szervernek
         Employee employee = new Employee(userName, Employee.UserType.values()[userPosition]);
@@ -98,7 +139,6 @@ public class Client {
         return employee;
     }
 
-    // TODO: Nincs kész
     private static void doFoglalas(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
@@ -110,13 +150,14 @@ public class Client {
 
         // Kérelem adatainak bekérése a munkalapra
         System.out.print("\nÚj munkalap létrehozva - Tranzakcióazonosító: " + worksheet.getTransactionID() + " (isInitialized: " + worksheet.isInitialized() + ")");
-        System.out.print("\nVevőkód:");
+        System.out.print("\nVevőkód: ");
         worksheet.setRenterID(br.readLine());
-        System.out.print("Cikkszám:");
+        System.out.print("Cikkszám: ");
         worksheet.setExternalID(br.readLine());
-        System.out.print("Raklapok száma:");
+        System.out.print("Raklapok száma: ");
         worksheet.setNumberOfPallets(Integer.parseInt(br.readLine()));
-        worksheet.setReservedDate(readDate());
+        boolean futureDateOnly = true;
+        worksheet.setReservedDate(readDate(futureDateOnly));
         System.out.print("Idő kerekítve: " + printDate(worksheet.getReservedDate()));
 
         // Foglalás adatainak ellenőrzése, előfoglalás
@@ -129,7 +170,7 @@ public class Client {
         }
         else {
             System.out.print("Foglalási adatok elutasítva!");
-            System.out.print("\nSzerver üzenete:" + worksheet.getTransactionMessage());
+            System.out.print("\nSzerver üzenete: " + worksheet.getTransactionMessage());
         }
 
         // TODO: Foglalás jóváhagyása, vagy törlése
@@ -148,19 +189,27 @@ public class Client {
     }
 
     // Dátum szkenner
-    private static LocalDateTime readDate() throws IOException {
+    private static LocalDateTime readDate(boolean futureDateOnly) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         System.out.println("Foglalás időpontja (Példa: " + printDate(LocalDateTime.now()) + "):");
         LocalDateTime dateTime = null;
+
+        // Csak jó dátumot fogadunk el
         while (dateTime == null) {
             String userinput = br.readLine();
             try {
                 dateTime = LocalDateTime.parse(userinput, format);
             } catch (DateTimeParseException e) {
-                System.out.println("Hibás dátum formátum, próbáld újra!");
+                System.out.println("Hibás dátum formátum, próbáld újra: ");
+            }
+            // Ha futureDateOnly flag igaz, csak jövőbeni dűtumot fogadunk el
+            if (dateTime!= null && futureDateOnly && Boolean.TRUE.equals(dateTime.isBefore(LocalDateTime.now()))){
+                System.out.println("Csak jövőbeni dátum lehet, próbáld újra: ");
+                dateTime = null;
             }
         }
+
         // Vágás 30 perces intervallumra
         dateTime = dateTime.truncatedTo(ChronoUnit.HOURS).plusMinutes(30 * (dateTime.getMinute() / 30));
         return dateTime;

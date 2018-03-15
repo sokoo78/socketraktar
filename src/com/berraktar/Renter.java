@@ -1,9 +1,14 @@
 package com.berraktar;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
 
 public class Renter implements Serializable {
+    // Szerializációhoz kell
     private static final long serialVersionUID = 3681656355503305496L;
+
+    // Bérlő tulajdonságai
     private String name;
     private String code;
     private int rentedNormalLocations;
@@ -12,6 +17,11 @@ public class Renter implements Serializable {
     private int freeCooledLocations;
     private int numberOfLogisticsOperations;
 
+    // Készlet adatok
+    private Map<String, List<Integer>> normalStock;
+    private Map<String, List<Integer>> cooledStock;
+
+    // Konstruktor
     Renter(String name, String code, int rentedNormalLocations, int rentedCooledLocations, int freeNormalLocations, int freeCooledLocations, int numberOfLogisticsOperations) {
         this.name = name;
         this.code = code;
@@ -22,11 +32,26 @@ public class Renter implements Serializable {
         this.numberOfLogisticsOperations = numberOfLogisticsOperations;
     }
 
-    public int getFreeLocations(boolean isCooled){
+    // Készlet hozzáadása
+    public void addStock(boolean isCooled, String externalPartNumber, List<Integer> locations){
+        Map<String, List<Integer>> stock;
+        // Hűtött áru
         if (isCooled){
-            return this.freeCooledLocations;
+            stock = this.cooledStock;
         }
-        return this.freeNormalLocations;
+        // Normál áru
+        else {
+            stock = this.normalStock;
+        }
+
+        // Van már ilyen anyag készleten
+        if (stock.get(externalPartNumber) != null) {
+            locations.forEach(x -> stock.get(externalPartNumber).add(x));
+        }
+        // Nincs még ilyen anyag készleten
+        else {
+            stock.put(externalPartNumber,locations);
+        }
     }
 
     // Logisztikai műveletek hozzáadása
@@ -60,6 +85,23 @@ public class Renter implements Serializable {
         return false;
     }
 
+    // Getterek, setterek
+
+    public int getRentedNormalLocations(){
+        return this.rentedNormalLocations;
+    }
+
+    public int getRentedCooledLocations(){
+        return this.rentedCooledLocations;
+    }
+
+    public int getFreeLocations(boolean isCooled){
+        if (isCooled){
+            return this.freeCooledLocations;
+        }
+        return this.freeNormalLocations;
+    }
+
     public String getName() {
         return name;
     }
@@ -75,4 +117,5 @@ public class Renter implements Serializable {
     public void setCode(String code) {
         this.code = code;
     }
+
 }

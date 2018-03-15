@@ -2,6 +2,7 @@ package com.berraktar;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class Worksheet implements Serializable {
 
@@ -42,7 +43,7 @@ public class Worksheet implements Serializable {
     private int numberOfPallets;            // Paletták száma
 
     // Tárolási adatok - szerver adja meg
-    private int locationID;
+    private List<Integer> locations;
     private int terminalID;
 
     // Konstruktor
@@ -159,19 +160,19 @@ public class Worksheet implements Serializable {
         isCancelled = true;
     }
 
-    public int getLocationID() {
-        return locationID;
-    }
-
-    public void setLocationID(int locationID) {
-        this.locationID = locationID;
-    }
-
     public int getTerminalID() {
         return terminalID;
     }
 
     public void setTerminalID(int terminalID) {
         this.terminalID = terminalID;
+    }
+
+    public List<Integer> getLocations() {
+        return locations;
+    }
+
+    public void setLocations(List<Integer> locations) {
+        this.locations = locations;
     }
 }

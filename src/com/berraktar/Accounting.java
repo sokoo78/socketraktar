@@ -1,14 +1,36 @@
 package com.berraktar;
 
+import java.io.File;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Accounting {
+public class Accounting implements Serializable {
+    // Szerializációhoz kell
+    private static final long serialVersionUID = -5771420064864866043L;
+
+    // Bérlők
     private Map<String, Renter> renters;
 
-    // Konstruktor - TODO: teszt adatok helyett majd fájlból kell betölteni a bérlőket
+    // Konstruktor
     public Accounting(){
-        this.createTestRenters();
+
+        // Bérlők adatainak betöltése
+        if (new File("Renters.ser").exists()) {
+            this.renters = (Map<String, Renter>) Persistency.LoadObject("Renters.ser");
+        }
+        // Tesztbérlők létrehozása ha nem létezik a fájl
+        else {
+            this.createTestRenters();
+        }
+    }
+
+    public int getTotalCooledReservations(){
+        return renters.values().stream().mapToInt(i -> i.getRentedCooledLocations()).sum();
+    }
+
+    public int getTotalNormalReservations(){
+        return renters.values().stream().mapToInt(i -> i.getRentedNormalLocations()).sum();
     }
 
     public Renter getRenter(String renterID){
@@ -31,7 +53,7 @@ public class Accounting {
                 "BEBE",
                 50,
                 0,
-                20,
+                50,
                 0,
                 0);
 
@@ -41,7 +63,7 @@ public class Accounting {
                 20,
                 10,
                 20,
-                0,
+                10,
                 0);
 
         Renter renter_3 = new Renter(
@@ -50,7 +72,7 @@ public class Accounting {
                 0,
                 50,
                 0,
-                5,
+                50,
                 0);
 
         Map<String, Renter> testRenters = new HashMap<>();
