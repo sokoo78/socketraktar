@@ -8,9 +8,9 @@ public class Terminal implements Serializable {
     // Szerializációhoz kell
     private static final long serialVersionUID = 4217347426722612092L;
 
-    // Lokáció tulajdonságai
+    // Terminál tulajdonságai
     private final int id;
-    private Map<String, Pallet> palletList = new HashMap<String, Pallet>();
+    private Map<String, Pallet> palletList = new HashMap<>();
 
     // Konstruktor
     public Terminal(int id) {
@@ -35,5 +35,9 @@ public class Terminal implements Serializable {
         Pallet _pallet = palletList.get(palletID);
         palletList.remove(palletID);
         return _pallet;
+    }
+
+    public int getId() {
+        return id;
     }
 }

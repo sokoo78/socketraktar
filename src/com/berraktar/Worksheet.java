@@ -52,6 +52,17 @@ public class Worksheet implements Serializable {
     }
 
     // Getterek, Setterek
+
+    public String getStatus(){
+        String status = "Eldobott";
+        if (this.isInitialized) status = "Létrehozva";
+        if (this.isApproved) status = "Elfogadva";
+        if (this.isActive) status = "Aktív";
+        if (this.isConfirmed) status = "Végrehajtva";
+        if (this.isCancelled) status = "Visszamondva";
+        return status;
+    }
+
     public int getTransactionID() {
         return transactionID;
     }
@@ -126,6 +137,10 @@ public class Worksheet implements Serializable {
 
     public void setCooled() {
         isCooled = true;
+    }
+
+    public void updateCooled(boolean isCooled) {
+        this.isCooled = isCooled;
     }
 
     public int getNumberOfPallets() {

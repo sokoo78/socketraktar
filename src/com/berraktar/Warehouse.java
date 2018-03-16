@@ -38,15 +38,15 @@ public class Warehouse implements Serializable {
     private AtomicInteger workCounter;
 
     // Konstruktor
-    public Warehouse(int maxNormalLocation, int maxCooledLocation, int maxNormalTerminal, int maxCooledTerminal){
+    Warehouse(int maxNormalLocation, int maxCooledLocation, int maxNormalTerminal, int maxCooledTerminal){
         this.maxNormalLocation = maxNormalLocation;
         this.maxCooledLocation = maxCooledLocation;
         this.maxNormalTerminal = maxNormalTerminal;
         this.maxCooledTerminal = maxCooledTerminal;
-        this.freeCooledLocation = maxNormalLocation;
-        this.freeCooledLocation = maxCooledLocation;
-        this.freeCooledLocation = maxNormalTerminal;
-        this.freeCooledLocation = maxCooledTerminal;
+        this.freeNormalLocation = this.maxNormalLocation;
+        this.freeCooledLocation = this.maxCooledLocation;
+        this.freeNormalTerminal = this.maxNormalTerminal;
+        this.freeCooledTerminal = this.maxCooledTerminal;
 
         // Mentett munkalapok betöltése
         if (new File("WorkSheets.ser").exists()) {
@@ -58,6 +58,42 @@ public class Warehouse implements Serializable {
             this.workCounter = (AtomicInteger) Persistency.LoadObject("WorkCounter.ser");
         } else {
             workCounter = new AtomicInteger(0);
+        }
+
+        // Mentett normál terminálok betöltése
+        if (new File("NormalTerminals.ser").exists()) {
+            this.normalTerminals = (ConcurrentHashMap<Integer,Terminal>) Persistency.LoadObject("NormalTerminals.ser");
+        } else {
+            for (int i = 1; i < this.maxNormalTerminal; i++){
+                this.normalTerminals.put(i,new Terminal(i));
+            }
+        }
+
+        // Mentett hűtött terminálok betöltése
+        if (new File("CooledTerminals.ser").exists()) {
+            this.cooledTerminals = (ConcurrentHashMap<Integer,Terminal>) Persistency.LoadObject("CooledTerminals.ser");
+        } else {
+            for (int i = 1; i < this.maxCooledTerminal; i++){
+                this.cooledTerminals.put(i,new Terminal(i));
+            }
+        }
+
+        // Mentett normál lokációk betöltése
+        if (new File("NormalLocations.ser").exists()) {
+            this.normalLocations = (ConcurrentHashMap<Integer,Location>) Persistency.LoadObject("NormalLocations.ser");
+        } else {
+            for (int i = 1; i < this.maxNormalLocation; i++){
+                this.normalLocations.put(i,new Location(i,null, false));
+            }
+        }
+
+        // Mentett hűtött lokációk betöltése
+        if (new File("CooledLocations.ser").exists()) {
+            this.cooledLocations = (ConcurrentHashMap<Integer,Location>) Persistency.LoadObject("CooledLocations.ser");
+        } else {
+            for (int i = 1; i < this.maxCooledLocation; i++){
+                this.cooledLocations.put(i,new Location(i,null, false));
+            }
         }
     }
 
@@ -103,7 +139,7 @@ public class Warehouse implements Serializable {
         }
 
         // Raktár szabad kapacitásának ellenőrzése, előfoglalás
-        List<Integer> reservedLocations = reserveLocations(worksheet.isCooled(), worksheet.getNumberOfPallets());
+        List<Integer> reservedLocations = reserveLocations(worksheet.isCooled(), worksheet.getNumberOfPallets(), worksheet.getRenterID());
         if (reservedLocations != null) {
             worksheet.setLocations(reservedLocations);
         } else {
@@ -112,8 +148,10 @@ public class Warehouse implements Serializable {
         }
 
         // Munkalap jóváhagyása, vagy elutasítása - TODO diszpécser még visszadobhatja
+
+        // Munkalap jóváhagyása
         worksheet.setApproved();
-        worksheets.put(worksheet.getTransactionID(),worksheet);
+        this.worksheets.put(worksheet.getTransactionID(),worksheet);
 
         // Logisztikai művelet lejelentése
         accounting.getRenter(renter.getCode()).addLogisticsOperations(1);
@@ -150,7 +188,7 @@ public class Warehouse implements Serializable {
     }
 
     // Lokáció foglalás
-    private synchronized List<Integer> reserveLocations(boolean isCooled, int numberOfPallets) {
+    private synchronized List<Integer> reserveLocations(boolean isCooled, int numberOfPallets, String renterID) {
         List<Integer> locationList = new ArrayList<>();
         ConcurrentHashMap<Integer, Location> locations;
 
@@ -164,14 +202,13 @@ public class Warehouse implements Serializable {
         }
 
         // Szabad lokációk összegyűjtése
-        while (locationList.size() != numberOfPallets){
+        while (locationList.size() != numberOfPallets){         // Amíg nincs meg a szükséges mennyiségű paletta
             int nextFreeLocation;
-            nextFreeLocation = getNextFreeLocation(isCooled);
-            System.out.println(nextFreeLocation);
-            if (nextFreeLocation != 0){
-                locations.put(nextFreeLocation, new Location(nextFreeLocation));
+            nextFreeLocation = getNextFreeLocation(isCooled);   // Szabad lokáció keresése
+            if (nextFreeLocation != 0){                         // Ha talált a kereső szabad lokációt, mehet a listába
+                locations.put(nextFreeLocation, new Location(nextFreeLocation, renterID, true));
                 locationList.add(nextFreeLocation);
-            } else {
+            } else {                                            // Ha nem talált, és még nincs elég paletta hely
                 return null;
             }
         }
@@ -191,7 +228,7 @@ public class Warehouse implements Serializable {
         }
 
         for (int i = 1; i < maxLocations; i++) {
-            if (locations.get(i) == null){
+            if (locations.get(i).isReserved() == false){
                 return i;
             }
         }
@@ -261,64 +298,106 @@ public class Warehouse implements Serializable {
         StringBuilder reply = new StringBuilder();
         DateTimeFormatter date = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         DateTimeFormatter time = DateTimeFormatter.ofPattern("HH:mm");
-        reply.append("\nID#\t\tRenter\tDate\t\t\tTime\tPallets\tWork\tTerminal\tLocations");
 
+        // Fejléc
+        reply.append("\nID#\t\tStátusz\t\tBérlő#\tDátum\t\tIdő\t\tPaletta#\tMunka\tTerminál\tLokációk");
+
+        // Munkalapok adatainak kigyűjtése
         for (Map.Entry<Integer, Worksheet> entry : worklist.entrySet()) {
             Worksheet value = entry.getValue();
-            reply.append("\n" + entry.getKey() + "\t\t");
-            reply.append(value.getRenterID() + "\t");
-            reply.append(value.getReservedDate().format(date) + "\t\t");
-            reply.append(value.getReservedDate().format(time) + "\t");
-            reply.append(value.getNumberOfPallets() + "\t\t");
-            reply.append(value.getWorkType() + "\t");
-            reply.append(value.getTerminalID() + "\t\t");
-            reply.append(value.getLocations() + "\t");
+            reply.append("\n").append(entry.getKey()).append("\t\t");
+            reply.append(value.getStatus()).append("\t");
+            if (value.isApproved()) {
+                reply.append(value.getRenterID()).append("\t");
+                reply.append(value.getReservedDate().format(date)).append("\t");
+                reply.append(value.getReservedDate().format(time)).append("\t");
+                reply.append(value.getNumberOfPallets()).append("\t\t\t");
+                reply.append(value.getWorkType()).append("\t");
+                reply.append(value.getTerminalID()).append("\t");
+                reply.append(value.getLocations()).append("\t");
+            }
         }
+
+        // Válasz mentése a jelentésbe
         report.setReply(reply.toString());
         return report;
     }
 
-    // TODO: lokációk jelentés
+    // Lokáció jelentés
     public synchronized Report LocationReport(Report report) {
         StringBuilder reply = new StringBuilder();
+        Map<Integer,Location> normalLocations = this.normalLocations;
+        Map<Integer,Location> cooledLocations = this.cooledLocations;
 
-        reply.append("Report nincs lefejlesztve!");
+        // Fejléc
+        reply.append("\nLokáció összefoglaló\n\n");
 
+        // Lokáció fő adatok
+        reply.append("Szabad / maximális normál lokációk száma:   \t");
+        reply.append(this.freeNormalLocation).append(" / ").append(this.getMaxNormalLocation()).append("\n");
+        reply.append("Szabad / maximális hűtött lokációk száma:   \t");
+        reply.append(this.freeCooledLocation).append(" / ").append(this.getMaxCooledLocation()).append("\n");
+        reply.append("Szabad / maximális normál terminálok száma: \t");
+        reply.append(this.freeNormalTerminal).append(" / ").append(this.getMaxNormalTerminal()).append("\n");
+        reply.append("Szabad / maximális hűtött terminálok száma: \t");
+        reply.append(this.freeCooledTerminal).append(" / ").append(this.getMaxCooledTerminal()).append("\n");
+
+        // Lokáció részletek
+        reply.append("\nFoglalt normál lokációk listája\n");
+        reply.append("\nLocID#\tRenterID\tInternalID\tExternalID");
+        getLocationList(reply, normalLocations);
+
+        reply.append("\n\nFoglalt hűtött lokációk listája\n");
+        reply.append("\nLocID#\tRenterID\tInternalID\tExternalID");
+        getLocationList(reply, cooledLocations);
+
+        // Válasz mentése a jelentésbe
         report.setReply(reply.toString());
         return report;
+    }
+
+    // Lokáció lista lokáció jelentéshez
+    private void getLocationList(StringBuilder reply, Map<Integer, Location> locations) {
+        for (Map.Entry<Integer, Location> entry : locations.entrySet()) {
+            Location value = entry.getValue();
+            reply.append("\n" + entry.getKey() + "\t\t");
+            reply.append(value.getRenterID() + "\t\t\t");
+            reply.append(value.scanPalletInternalID() + "\t\t\t");
+            reply.append(value.scanPalletExternalID() + "\t\t\t");
+        }
     }
 
     // Getterek, Setterek
 
-    public int getMaxNormalLocation() {
-        return maxNormalLocation;
+    public synchronized int getMaxNormalLocation() {
+        return this.maxNormalLocation;
     }
 
-    public int getMaxCooledLocation() {
-        return maxCooledLocation;
+    public synchronized int getMaxCooledLocation() {
+        return this.maxCooledLocation;
     }
 
-    public int getMaxNormalTerminal() {
-        return maxNormalLocation;
+    public synchronized int getMaxNormalTerminal() {
+        return this.maxNormalTerminal;
     }
 
-    public int getMaxCooledTerminal() {
-        return maxCooledLocation;
+    public synchronized int getMaxCooledTerminal() {
+        return this.maxCooledTerminal;
     }
 
-    public void increaseFreeCooledLocations(int byAmount){
+    public synchronized void increaseFreeCooledLocations(int byAmount){
         this.freeCooledLocation += byAmount;
     }
 
-    public void increaseFreeNormalLocations(int byAmount){
+    public synchronized void increaseFreeNormalLocations(int byAmount){
         this.freeNormalLocation += byAmount;
     }
 
-    public void decreaseFreeCooledLocations(int byAmount){
+    public synchronized void decreaseFreeCooledLocations(int byAmount){
         this.freeCooledLocation -= byAmount;
     }
 
-    public void decreaseFreeNormalLocations(int byAmount){
+    public synchronized void decreaseFreeNormalLocations(int byAmount){
         this.freeNormalLocation -= byAmount;
     }
 

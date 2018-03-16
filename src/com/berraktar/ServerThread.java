@@ -44,9 +44,9 @@ public class ServerThread extends Thread {
                     doWork(objectOutputStream, (Worksheet)object, employee.getName());
                 }
 
-                // Message típusú üzenet feldolgozása
-                if (object instanceof Message) {
-                    doTest(objectOutputStream, (Message)object, employee.getName());
+                // Test típusú üzenet feldolgozása
+                if (object instanceof Test) {
+                    doTest(objectOutputStream, (Test)object, employee.getName());
                 }
 
                 // Report típusú üzenet feldolgozása
@@ -70,17 +70,17 @@ public class ServerThread extends Thread {
             case Renters:
                 report = warehouse.RenterReport(report);
                 oos.writeObject(report);
-                System.out.println(userName + " jelentést kért: "); // + report.getReport());
+                System.out.println(userName + " jelentést kért: " + report.getReport());
                 break;
             case Worksheets:
                 report = warehouse.WorksheetReport(report);
                 oos.writeObject(report);
-                System.out.println(userName + " jelentést kért: "); // + report.getReport());
+                System.out.println(userName + " jelentést kért: " + report.getReport());
                 break;
             case Locations:
                 report = warehouse.LocationReport(report);
                 oos.writeObject(report);
-                System.out.println(userName + " jelentést kért: "); // + report.getReport());
+                System.out.println(userName + " jelentést kért: " + report.getReport());
                 break;
         }
     }
@@ -120,11 +120,11 @@ public class ServerThread extends Thread {
     }
 
     // Teszt metódus
-    private void doTest(ObjectOutputStream oos, Message message, String userName) throws IOException {
+    private void doTest(ObjectOutputStream oos, Test test, String userName) throws IOException {
         // Összeszorozzuk a két számot amit kaptunk az objektumban
-        message.setResult(message.getFirstNumber().intValue() * message.getSecondNumber().intValue());
+        test.setResult(test.getFirstNumber().intValue() * test.getSecondNumber().intValue());
         System.out.println("DoTest metódust hívta: " + userName);
         // Feldolgozott objektum visszaküldése a kliensnek
-        oos.writeObject(message);
+        oos.writeObject(test);
     }
 }

@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Client {
 
@@ -20,6 +22,9 @@ public class Client {
 
         // Bejelentkezés
         Employee employee = DoBejelentkezes(objectInputStream, objectOutputStream);
+
+        // Teszt foglalások
+        doFoglalasTest(objectOutputStream, objectInputStream);
 
         // Menü megjelenítése
         showMenu(employee.getPositionID(), objectOutputStream, objectInputStream);
@@ -154,9 +159,12 @@ public class Client {
         worksheet.setRenterID(br.readLine());
         System.out.print("Cikkszám: ");
         worksheet.setExternalID(br.readLine());
+        System.out.print("Hűtött áru? (i/n): ");
+        worksheet.updateCooled(readBoolean());
         System.out.print("Raklapok száma: ");
         worksheet.setNumberOfPallets(Integer.parseInt(br.readLine()));
         boolean futureDateOnly = true;
+        System.out.println("Foglalás időpontja (Példa: " + printDate(LocalDateTime.now()) + "):");
         worksheet.setReservedDate(readDate(futureDateOnly));
         System.out.print("Idő kerekítve: " + printDate(worksheet.getReservedDate()));
 
@@ -188,11 +196,24 @@ public class Client {
     private static void doBeszallitas(ObjectOutputStream oos, ObjectInputStream ois) {
     }
 
+    // Igen vagy Nem szkenner
+    private static boolean readBoolean () throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String userinput = "";
+        // Csak igen-t vagy nem-et fogadunk el
+        while (!userinput.equalsIgnoreCase("i") | !userinput.equalsIgnoreCase("n")){
+            userinput = br.readLine().trim();
+            if (userinput.equalsIgnoreCase("i")) return true;
+            if (userinput.equalsIgnoreCase("n")) return false;
+            System.out.println("Hibás válasz, próbáld újra (i/n): ");
+        }
+        return Boolean.parseBoolean(null);
+    }
+
     // Dátum szkenner
     private static LocalDateTime readDate(boolean futureDateOnly) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        System.out.println("Foglalás időpontja (Példa: " + printDate(LocalDateTime.now()) + "):");
         LocalDateTime dateTime = null;
 
         // Csak jó dátumot fogadunk el
@@ -238,10 +259,57 @@ public class Client {
 
         // Adat küldése a szerverre az OutpuStream-en keresztül
         // Bármilyen objektum lehet ami implementálja a Serializable interfészt
-        Message message = new Message(firstNumber,secondNumber);
-        oos.writeObject(message);
+        Test test = new Test(firstNumber,secondNumber);
+        oos.writeObject(test);
         // Szerver válaszának a kiolvasása az InputStream-ről
-        Message returnMessage = (Message)ois.readObject();
-        System.out.println("Eredmény: " + returnMessage.getResult());
+        Test returnTest = (Test)ois.readObject();
+        System.out.println("Eredmény: " + returnTest.getResult());
     }
+
+    private static void doFoglalasTest(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+
+        // Teszt foglalási adatok - TODO: további teszteket hozzáadni
+        List<Reservation> testReservations = new ArrayList<>();
+        testReservations.add(new Reservation("BEBE", "CIKK75110001", false, 5, LocalDateTime.now().plusDays(1)));
+
+        // Inicializálás - TODO ciklusba tenni
+        Worksheet worksheet = new Worksheet(Worksheet.WorkType.Incoming);
+        worksheet.setTransaction(Worksheet.TransactionType.Initialize);
+        oos.writeObject(worksheet);
+        worksheet = (Worksheet)ois.readObject();
+
+        // Kitöltés
+        Reservation reservation = testReservations.get(1);
+        worksheet = fillTestWorkSheet(worksheet, reservation);
+
+        // Jóváhagyás
+        worksheet.setTransaction(Worksheet.TransactionType.Approve);
+        oos.writeObject(worksheet);
+        worksheet = (Worksheet)ois.readObject();
+
+        // Tömör kiírás - TODO ciklus eddig
+        printTestWorksheet(worksheet);
+    }
+
+    private static Worksheet fillTestWorkSheet(Worksheet worksheet, Reservation reservation) {
+        worksheet.setRenterID(reservation.RenterID);
+        worksheet.setExternalID(reservation.PartNumber);
+        worksheet.updateCooled(reservation.IsCooled);
+        worksheet.setNumberOfPallets(reservation.Pallets);
+        worksheet.setReservedDate(reservation.ReservationDate);
+        return worksheet;
+    }
+
+    private static void printTestWorksheet(Worksheet worksheet) {
+        System.out.print("\nID: " + worksheet.getTransactionID() + " (" + worksheet.isInitialized() + ")");
+        System.out.print("\tBérlő: " + worksheet.getRenterID());
+        System.out.print("\tCikk: " + worksheet.getExternalID());
+        System.out.print("\tHűtött: " + worksheet.isCooled());
+        System.out.print("\tRaklap: " + worksheet.getNumberOfPallets());
+        System.out.print("\tIdő: " + printDate(worksheet.getReservedDate()));
+        System.out.print("\tFoglalás: ");
+        System.out.print(worksheet.isApproved() ? "OK" : "NOK - " + worksheet.getTransactionMessage());
+    }
+
+
 }
