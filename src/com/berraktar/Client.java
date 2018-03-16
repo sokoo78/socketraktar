@@ -23,9 +23,6 @@ public class Client {
         // Bejelentkezés
         Employee employee = DoBejelentkezes(objectInputStream, objectOutputStream);
 
-        // Teszt foglalások
-        doFoglalasTest(objectOutputStream, objectInputStream);
-
         // Menü megjelenítése
         showMenu(employee.getPositionID(), objectOutputStream, objectInputStream);
 
@@ -42,11 +39,12 @@ public class Client {
                     "2. Beszállítás\n\t" +
                     "3. Új kiszállítás\n\t" +
                     "4. Kiszállítás\n\t" +
-                    "5. Teszt\n\t" +
-                    "6. Kilépés\n" +
+                    "5. Foglalás teszt\n\t" +
+                    "6. Szerver teszt\n\t" +
+                    "7. Kilépés\n" +
                     "Válassz menüpontot: ");
             String input = br.readLine();
-            while(!input.equals("6")){
+            while(!input.equals("7")){
                 switch(input){
                     case "1":
                         doFoglalas(oos, ois);
@@ -61,6 +59,9 @@ public class Client {
                         doKiszallitas(oos, ois);
                         break;
                     case "5":
+                        doFoglalasTest(oos, ois);
+                        break;
+                    case "6":
                         doTest(oos, ois);
                         break;
                     default:
@@ -73,8 +74,9 @@ public class Client {
                         "2. Beszállítás\n\t" +
                         "3. Új kiszállítás\n\t" +
                         "4. Kiszállítás\n\t" +
-                        "5. Teszt\n\t" +
-                        "6. Kilépés\n" +
+                        "5. Foglalás teszt\n\t" +
+                        "6. Szerver teszt\n\t" +
+                        "7. Kilépés\n" +
                         "Válassz menüpontot: ");
                 input = br.readLine();
             }
@@ -87,10 +89,11 @@ public class Client {
                     "1. Ügyfél lista\n\t" +
                     "2. Munkalap lista\n\t" +
                     "3. Lokáció lista\n\t" +
-                    "4. Kilépés\n" +
+                    "4. Terminál foglalási lista\n\t" +
+                    "5. Kilépés\n" +
                     "Válassz menüpontot: ");
             String input = br.readLine();
-            while(!input.equals("6")){
+            while(!input.equals("5")){
                 switch(input){
                     case "1":
                         GetReport(oos, ois, Report.ReportType.Renters);
@@ -110,7 +113,8 @@ public class Client {
                         "1. Ügyfél lista\n\t" +
                         "2. Munkalap lista\n\t" +
                         "3. Lokáció lista\n\t" +
-                        "4. Kilépés\n" +
+                        "4. Terminál foglalási lista\n\t" +
+                        "5. Kilépés\n" +
                         "Válassz menüpontot: ");
                 input = br.readLine();
             }
@@ -270,25 +274,47 @@ public class Client {
 
         // Teszt foglalási adatok - TODO: további teszteket hozzáadni
         List<Reservation> testReservations = new ArrayList<>();
-        testReservations.add(new Reservation("BEBE", "CIKK75110001", false, 5, LocalDateTime.now().plusDays(1)));
+        DateTimeFormatter dateformat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        LocalDateTime dateTime = LocalDateTime.parse("2019-12-01 12:00", dateformat);
+
+        // Sikeres foglalások
+        testReservations.add(new Reservation("BEBE", "CIKK75110001", false, 1, LocalDateTime.now().plusDays(1)));
+        testReservations.add(new Reservation("REZO", "NORM65110010", false, 1, LocalDateTime.now().plusDays(1)));
+        testReservations.add(new Reservation("BEBE", "CIKK75110002", false, 2, LocalDateTime.now().plusDays(1)));
+        testReservations.add(new Reservation("REZO", "HUTO75110011", true,  1, LocalDateTime.now().plusDays(1)));
+        testReservations.add(new Reservation("GAPE", "NORM65110010", true,  1, dateTime));
+        testReservations.add(new Reservation("GAPE", "NORM65110011", true,  1, dateTime));
+        testReservations.add(new Reservation("GAPE", "NORM65110012", true,  1, dateTime));
+
+        // Sikertelen foglalások
+        // 1. Bérlő nem létezik
+        testReservations.add(new Reservation("NUKU", "CIKK75110001", false, 5, LocalDateTime.now().plusDays(1)));
+        // 2. Nincs a bérlőnek hűtött lokációja
+        testReservations.add(new Reservation("BEBE", "CIKK75110001", true,  1, LocalDateTime.now().plusDays(1)));
+        // 3. Nincs a bérlőnek elég szabad helye
+        testReservations.add(new Reservation("BEBE", "CIKK75110001", false, 501, LocalDateTime.now().plusDays(1)));
+        // 4. Nincs a megadott időpontban szabad terminál
+        testReservations.add(new Reservation("GAPE", "NORM65110010", true,  1, dateTime));
 
         // Inicializálás - TODO ciklusba tenni
-        Worksheet worksheet = new Worksheet(Worksheet.WorkType.Incoming);
-        worksheet.setTransaction(Worksheet.TransactionType.Initialize);
-        oos.writeObject(worksheet);
-        worksheet = (Worksheet)ois.readObject();
+        for (int i = 0; i < testReservations.size(); i++) {
+            Worksheet worksheet = new Worksheet(Worksheet.WorkType.Incoming);
+            worksheet.setTransaction(Worksheet.TransactionType.Initialize);
+            oos.writeObject(worksheet);
+            worksheet = (Worksheet) ois.readObject();
 
-        // Kitöltés
-        Reservation reservation = testReservations.get(1);
-        worksheet = fillTestWorkSheet(worksheet, reservation);
+            // Kitöltés
+            Reservation reservation = testReservations.get(i);
+            worksheet = fillTestWorkSheet(worksheet, reservation);
 
-        // Jóváhagyás
-        worksheet.setTransaction(Worksheet.TransactionType.Approve);
-        oos.writeObject(worksheet);
-        worksheet = (Worksheet)ois.readObject();
+            // Jóváhagyás
+            worksheet.setTransaction(Worksheet.TransactionType.Approve);
+            oos.writeObject(worksheet);
+            worksheet = (Worksheet) ois.readObject();
 
-        // Tömör kiírás - TODO ciklus eddig
-        printTestWorksheet(worksheet);
+            // Tömör kiírás
+            printTestWorksheet(worksheet);
+        }
     }
 
     private static Worksheet fillTestWorkSheet(Worksheet worksheet, Reservation reservation) {

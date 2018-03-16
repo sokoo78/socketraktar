@@ -160,6 +160,13 @@ public class Warehouse implements Serializable {
         Persistency.SaveObject(accounting.getRenters(), "Renters.ser");
         Persistency.SaveObject(this.worksheets, "WorkSheets.ser");
         Persistency.SaveObject(this.workCounter, "WorkCounter.ser");
+        if (worksheet.isCooled()) {
+            Persistency.SaveObject(this.cooledLocations, "CooledLocations.ser");
+        } else {
+            Persistency.SaveObject(this.normalLocations, "NormalLocations.ser");
+        }
+
+        // Minden OK, mehet a visszaigazolás
         return worksheet;
     }
 
@@ -251,18 +258,17 @@ public class Warehouse implements Serializable {
             maxTerminals = this.getMaxNormalTerminal();
         }
         // Van-e szabad terminál
-        int listSize;
         // Ha a megadott dátum alatt létezik már terminállista, akkor hozzá kell adni az új foglalást
         if (terminalList != null) {
-            listSize = this.reservedNormalTerminals.get(reserveDate).size();
-            if (listSize < maxTerminals) {
-                // Első szabad terminál sorszámának keresése és visszaadása
-                for (int i = 1; i < maxTerminals; i++){
+            if (terminalList.size() < maxTerminals) {   // Nem foglalt az összes terminál
+                for (int i = 1; i < maxTerminals; i++){ // Első szabad terminál sorszámának keresése és visszaadása
                     if (!terminalList.contains(i)){
                         terminalList.add(i);
                         return i;
                     }
                 }
+            } else {
+                return 0; // Minden terminál foglalt az adott időpontban
             }
         }
         // Ha a megadott dátum alatt még nem létezik terminállista, akkor létre kell hozni a listát
@@ -313,8 +319,13 @@ public class Warehouse implements Serializable {
                 reply.append(value.getReservedDate().format(time)).append("\t");
                 reply.append(value.getNumberOfPallets()).append("\t\t\t");
                 reply.append(value.getWorkType()).append("\t");
-                reply.append(value.getTerminalID()).append("\t");
-                reply.append(value.getLocations()).append("\t");
+                reply.append(value.getTerminalID()).append("\t\t");
+                if (value.isCooled()){
+                    reply.append(" (Hűtött) ");
+                } else {
+                    reply.append(" (Normál) ");
+                }
+                reply.append(value.getLocations());
             }
         }
 
@@ -360,10 +371,12 @@ public class Warehouse implements Serializable {
     private void getLocationList(StringBuilder reply, Map<Integer, Location> locations) {
         for (Map.Entry<Integer, Location> entry : locations.entrySet()) {
             Location value = entry.getValue();
-            reply.append("\n" + entry.getKey() + "\t\t");
-            reply.append(value.getRenterID() + "\t\t\t");
-            reply.append(value.scanPalletInternalID() + "\t\t\t");
-            reply.append(value.scanPalletExternalID() + "\t\t\t");
+            if (value.getRenterID() != null) {
+                reply.append("\n" + entry.getKey() + "\t\t");
+                reply.append(value.getRenterID() + "\t\t\t");
+                reply.append(value.scanPalletInternalID() + "\t\t\t");
+                reply.append(value.scanPalletExternalID() + "\t\t\t");
+            }
         }
     }
 

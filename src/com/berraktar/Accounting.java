@@ -51,28 +51,28 @@ public class Accounting implements Serializable {
         Renter renter_1 = new Renter(
                 "Bérlő Béla",
                 "BEBE",
-                50,
+                500,
                 0,
-                50,
+                500,
                 0,
                 0);
 
         Renter renter_2 = new Renter(
                 "Renter Zoli",
                 "REZO",
-                20,
-                10,
-                20,
-                10,
+                200,
+                100,
+                200,
+                100,
                 0);
 
         Renter renter_3 = new Renter(
                 "Gazdag Peti",
                 "GAPE",
                 0,
-                50,
+                500,
                 0,
-                50,
+                500,
                 0);
 
         Map<String, Renter> testRenters = new HashMap<>();
