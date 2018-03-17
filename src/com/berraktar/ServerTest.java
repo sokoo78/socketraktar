@@ -9,13 +9,13 @@ public class ServerTest implements Serializable {
 
     private static final long serialVersionUID = 8745960972757367043L;
     // Ezt a két számot fogjuk megadni
-    Integer firstNumber = null;
-    Integer secondNumber = null;
+    private Integer firstNumber = null;
+    private Integer secondNumber = null;
     // Ebbe pedig várjuk vissza az eredményt
     // Össze fogjuk szorozni őket a szerveren
-    Integer result = null;
+    private Integer result = null;
 
-    public ServerTest(Integer firstNumber, Integer secondNumber){
+    ServerTest(Integer firstNumber, Integer secondNumber){
         this.firstNumber = firstNumber;
         this.secondNumber = secondNumber;
     }

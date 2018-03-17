@@ -4,7 +4,8 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Accounting implements Serializable {
+class Accounting implements Serializable {
+
     // Szerializációhoz kell
     private static final long serialVersionUID = -5771420064864866043L;
 
@@ -12,16 +13,24 @@ public class Accounting implements Serializable {
     private Map<String, Renter> renters;
 
     // Konstruktor
-    public Accounting(){
+    Accounting(){
+        loadAccountingState();
+    }
 
-        // Bérlők adatainak betöltése
+    // Bérlők adatainak betöltése
+    private void loadAccountingState(){
         if (new File("Renters.ser").exists()) {
             this.renters = (Map<String, Renter>) Persistency.LoadObject("Renters.ser");
         }
-        // Tesztbérlők létrehozása ha nem létezik a fájl
+        // Tesztbérlők létrehozása ha nem létezik a fájl - TODO: ezt lehet törölni ha kész a cucc
         else {
             this.createTestRenters();
         }
+    }
+
+    // Bérlők adatainak mentése
+    private void saveAccountingState(){
+        Persistency.SaveObject(this.getRenters(), "Renters.ser");
     }
 
     private static void GetReport(ObjectOutputStream oos, ObjectInputStream ois, Report.ReportType reportType) throws IOException, ClassNotFoundException {
@@ -37,6 +46,10 @@ public class Accounting implements Serializable {
 
     public int getTotalNormalReservations(){
         return renters.values().stream().mapToInt(i -> i.getRentedNormalLocations()).sum();
+    }
+
+    public void addLogisticsOperations (String renterID, int numberOfOperations){
+        this.getRenter(renterID).addLogisticsOperations(numberOfOperations);
     }
 
     public Renter getRenter(String renterID){

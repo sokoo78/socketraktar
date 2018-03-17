@@ -10,23 +10,22 @@ public class Worksheet implements Serializable {
     private static final long serialVersionUID = -7149976626711109237L;
 
     // Munkalaptípusok
-    public enum WorkType {Incoming, Outgoing}
+    public enum WorkSheetType {Incoming, Outgoing, Invalid}
     // Incoming: beérkező áru
     // OutGoing: kimenő áru
 
-    // Tranzakció flagek
-    public enum TransactionType {Initialize, Approve, Activate, Confirm, Cancel}
+    // Tranzakció típusok
+    //public enum TransactionType {Initialize, Approve, Confirm, Cancel}
     // Initialize: Új munkalap kérése a szervertől          - a szerver transactionID-val tér vissza, a munkalap létrejön
     // Approve:    Igénylési adatok ellenőrzése a szerveren - a szerver isApproved flaggel tér vissza
-    // Activate:   Beérkezés jelzése a szervernek           - a szerver isActive flaggel tér vissza
     // Confirm:    Végrehajtás jelzése a szervernek         - a szerver isConfirmed flaggel tér vissza, a munkalap megsemmisül
     // Cancel:     Törlési igény küldése a szervernek       - a szerver isCancelled flaggel tér vissza, a munkalap megsemmisül
 
     // Munkalap tulajdonságai
-    private int transactionID;              // Munkalap azonosító - sima futó sorszám
-    private final WorkType workType;        // Beszállítás vagy kiszállítás
-    private TransactionType transaction;    // Végrehajtandó művelet
-    private String transactionMessage;      // Utolsó művelettel kapcsolatos információ (pl hibaüzenet)
+    private int transactionID;                  // Munkalap azonosító - sima futó sorszám
+    //private TransactionType transaction;        // Végrehajtandó művelet
+    private final WorkSheetType workSheetType;  // Beszállítás vagy kiszállítás
+    private String transactionMessage;          // Utolsó művelettel kapcsolatos információ (pl hibaüzenet)
 
     // Állapotjelzők
     private boolean isInitialized = false;  // Van már tranzakcióazonosítója
@@ -38,6 +37,7 @@ public class Worksheet implements Serializable {
     // Igénylési adatok - diszpécser adja meg
     private String renterID;                // Bérlő
     private LocalDateTime reservedDate;     // Igényelt időpont
+    private LocalDateTime receivedDate;     // Beérkezés időpontja
     private String externalID;              // Vevői cikkszám
     private boolean isCooled;               // Hűtendő vagy normál
     private int numberOfPallets;            // Paletták száma
@@ -47,19 +47,19 @@ public class Worksheet implements Serializable {
     private int terminalID;
 
     // Konstruktor
-    public Worksheet(WorkType worktype) {
-        this.workType = worktype;
+    public Worksheet(WorkSheetType worktype) {
+        this.workSheetType = worktype;
     }
 
     // Getterek, Setterek
 
     public String getStatus(){
-        String status = "Eldobott";
-        if (this.isInitialized) status = "Létrehozva";
-        if (this.isApproved) status = "Elfogadva";
-        if (this.isActive) status = "Aktív";
-        if (this.isConfirmed) status = "Végrehajtva";
-        if (this.isCancelled) status = "Visszamondva";
+        String status                  = "Eldobott    ";
+        if (this.isInitialized) status = "Létrehozva  ";
+        if (this.isApproved) status    = "Elfogadva   ";
+        if (this.isActive) status      = "Aktív       ";
+        if (this.isConfirmed) status   = "Végrehajtva ";
+        if (this.isCancelled) status   = "Visszamondva";
         return status;
     }
 
@@ -71,8 +71,8 @@ public class Worksheet implements Serializable {
         this.transactionID = transactionID;
     }
 
-    public WorkType getWorkType() {
-        return workType;
+    public WorkSheetType getWorkSheetType() {
+        return workSheetType;
     }
 
     public boolean isApproved() {
@@ -81,6 +81,10 @@ public class Worksheet implements Serializable {
 
     public void setApproved() {
         isApproved = true;
+    }
+
+    public void updateApproved(boolean isApproved){
+        this.isCooled = isApproved;
     }
 
     public boolean isActive() {
@@ -99,13 +103,13 @@ public class Worksheet implements Serializable {
         isInitialized = true;
     }
 
-    public TransactionType getTransaction() {
-        return transaction;
-    }
+    //public TransactionType getTransaction() {
+    //    return transaction;
+    //}
 
-    public void setTransaction(TransactionType transaction) {
-        this.transaction = transaction;
-    }
+    //public void setTransaction(TransactionType transaction) {
+    //    this.transaction = transaction;
+    //}
 
     public String getRenterID() {
         return renterID;
@@ -189,5 +193,13 @@ public class Worksheet implements Serializable {
 
     public void setLocations(List<Integer> locations) {
         this.locations = locations;
+    }
+
+    public LocalDateTime getReceivedDate() {
+        return receivedDate;
+    }
+
+    public void setReceivedDate(LocalDateTime receivedDate) {
+        this.receivedDate = receivedDate;
     }
 }

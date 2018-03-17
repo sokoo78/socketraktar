@@ -47,7 +47,11 @@ public class Warehouse implements Serializable {
         this.freeCooledLocation = this.maxCooledLocation;
         this.freeNormalTerminal = this.maxNormalTerminal;
         this.freeCooledTerminal = this.maxCooledTerminal;
+        loadWarehouseState();
+    }
 
+    // Adatok betöltése
+    private void loadWarehouseState() {
         // Mentett munkalapok betöltése
         if (new File("WorkSheets.ser").exists()) {
             this.worksheets = (ConcurrentHashMap<Integer, Worksheet>) Persistency.LoadObject("WorkSheets.ser");
@@ -97,10 +101,18 @@ public class Warehouse implements Serializable {
         }
     }
 
+    private synchronized void saveWarehouseState() {
+        // Adatok mentése fájlba
+        Persistency.SaveObject(this.worksheets, "WorkSheets.ser");
+        Persistency.SaveObject(this.workCounter, "WorkCounter.ser");
+        Persistency.SaveObject(this.cooledLocations, "CooledLocations.ser");
+        Persistency.SaveObject(this.normalLocations, "NormalLocations.ser");
+    }
+
     // Új munkalap létrehozása
-    public synchronized Worksheet CreateWorkSheet(Worksheet.WorkType workType) {
+    public synchronized Worksheet CreateWorkSheet(Worksheet.WorkSheetType workSheetType) {
         Integer newID = workCounter.incrementAndGet();
-        Worksheet newWorkSheet = new Worksheet(workType);
+        Worksheet newWorkSheet = new Worksheet(workSheetType);
         newWorkSheet.setTransactionID(newID);
         newWorkSheet.setInitialized();
         worksheets.put(newID, newWorkSheet);
@@ -154,27 +166,42 @@ public class Warehouse implements Serializable {
         this.worksheets.put(worksheet.getTransactionID(),worksheet);
 
         // Logisztikai művelet lejelentése
-        accounting.getRenter(renter.getCode()).addLogisticsOperations(1);
+        accounting.addLogisticsOperations(renter.getCode(),1);
 
-        // Adatok mentése fájlba
-        Persistency.SaveObject(accounting.getRenters(), "Renters.ser");
-        Persistency.SaveObject(this.worksheets, "WorkSheets.ser");
-        Persistency.SaveObject(this.workCounter, "WorkCounter.ser");
-        if (worksheet.isCooled()) {
-            Persistency.SaveObject(this.cooledLocations, "CooledLocations.ser");
-        } else {
-            Persistency.SaveObject(this.normalLocations, "NormalLocations.ser");
-        }
+        saveWarehouseState();
 
         // Minden OK, mehet a visszaigazolás
         return worksheet;
     }
 
     // Munkalap aktiválása
-    // TODO: Beérkezési dátum paramétert hozzá kell adni
-    public synchronized Worksheet ActivateWorkSheet(Worksheet worksheet) {
-        // TODO: ellenőrizni, hogy a beérkezés időpontja megfelel-e a foglalásnak, ha igen, aktiválni a munkalapot, ha nem, hibaüzenetet beállítani
-        return worksheet;
+    public synchronized Receiving ActivateWorkSheet(Receiving receiving) {
+        Worksheet worksheet = this.worksheets.get(receiving.getTransactionID());
+
+        // Létezik-e a munkalap
+        if (worksheet == null){
+            receiving.setTransactionMessage("Ezen a számon nincs foglalás a rendszerben!");
+            return receiving;
+        }
+
+        // Nincs-e már aktiválva
+        if (worksheet.isActive()) {
+            receiving.setTransactionMessage("Ez a munkalap már aktív!");
+            return receiving;
+        }
+
+        // Megfelelő-e a beérkezés dátuma
+        if (UserIO.DateisInRange(worksheet.getReservedDate(), worksheet.getReservedDate().plusMinutes(30),receiving.getReceivingDate())) {
+            worksheet.setActive();
+            receiving.setApproved();
+            return receiving;
+        } else {
+            receiving.setTransactionMessage("Nem megfelelő érkezési dátum: " +
+                    UserIO.printDate(worksheet.getReservedDate()) + "-" +
+                    worksheet.getReservedDate().getHour() + ":" + worksheet.getReservedDate().plusMinutes(30).getMinute() +
+                    " helyett " + UserIO.printDate(receiving.getReceivingDate()));
+            return receiving;
+        }
     }
 
     // Munkalap lezárása (végrehajtva)
@@ -318,7 +345,7 @@ public class Warehouse implements Serializable {
                 reply.append(value.getReservedDate().format(date)).append("\t");
                 reply.append(value.getReservedDate().format(time)).append("\t");
                 reply.append(value.getNumberOfPallets()).append("\t\t\t");
-                reply.append(value.getWorkType()).append("\t");
+                reply.append(value.getWorkSheetType()).append("\t");
                 reply.append(value.getTerminalID()).append("\t\t");
                 if (value.isCooled()){
                     reply.append(" (Hűtött) ");
@@ -368,19 +395,23 @@ public class Warehouse implements Serializable {
     }
 
     // Lokáció lista lokáció jelentéshez
-    private void getLocationList(StringBuilder reply, Map<Integer, Location> locations) {
+    private synchronized void getLocationList(StringBuilder reply, Map<Integer, Location> locations) {
         for (Map.Entry<Integer, Location> entry : locations.entrySet()) {
             Location value = entry.getValue();
             if (value.getRenterID() != null) {
-                reply.append("\n" + entry.getKey() + "\t\t");
-                reply.append(value.getRenterID() + "\t\t\t");
-                reply.append(value.scanPalletInternalID() + "\t\t\t");
-                reply.append(value.scanPalletExternalID() + "\t\t\t");
+                reply.append("\n").append(entry.getKey()).append("\t\t");
+                reply.append(value.getRenterID()).append("\t\t\t");
+                reply.append(value.scanPalletInternalID()).append("\t\t\t");
+                reply.append(value.scanPalletExternalID()).append("\t\t\t");
             }
         }
     }
 
     // Getterek, Setterek
+
+    public synchronized Worksheet getWorksheetByID (Integer transactionID){
+        return this.worksheets.get(transactionID);
+    }
 
     public synchronized int getMaxNormalLocation() {
         return this.maxNormalLocation;

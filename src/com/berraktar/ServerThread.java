@@ -6,13 +6,14 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.Objects;
 
-public class ServerThread extends Thread {
+class ServerThread extends Thread {
 
     // Socket átvétele a főszáltól
-    Socket socket;
-    Warehouse warehouse;
-    Accounting accounting;
+    private Socket socket;
+    private Warehouse warehouse;
+    private Accounting accounting;
 
     ServerThread(Socket socket, Warehouse warehouse, Accounting accounting) {
         this.socket = socket;
@@ -40,8 +41,13 @@ public class ServerThread extends Thread {
             while ((object = objectInputStream.readObject()) != null){
 
                 // Worksheet típusú üzenet feldolgozása
-                if (object instanceof Worksheet) {
-                    doWork(objectOutputStream, (Worksheet)object, employee.getName());
+                if (object instanceof Reservation) {
+                    doReservation(objectOutputStream, (Reservation)object, employee.getName());
+                }
+
+                // Receiving típusú üzenet feldolgozása
+                if (object instanceof Receiving) {
+                    doReceiving(objectOutputStream, (Receiving)object, employee.getName());
                 }
 
                 // ServerTest típusú üzenet feldolgozása
@@ -59,9 +65,9 @@ public class ServerThread extends Thread {
             // Zárjuk a kapcsolatot
             socket.close();
         } catch (IOException e) {
-            System.out.println(employee.getName() + " bontotta a kapcsolatot ");
+            System.out.println(Objects.requireNonNull(employee).getName() + " bontotta a kapcsolatot ");
         } catch (ClassNotFoundException e) {
-            System.out.println(employee.getName() + " érvénytelen adatot küldött ");
+            System.out.println(Objects.requireNonNull(employee).getName() + " érvénytelen adatot küldött ");
         }
     }
 
@@ -85,44 +91,28 @@ public class ServerThread extends Thread {
         }
     }
 
-    // Munkalapokat feldolgozó metódus
-    private void doWork(ObjectOutputStream oos, Worksheet worksheet, String userName) throws IOException {
-        switch(worksheet.getTransaction()) {
-            // Új munkalap létrehozása
-            case Initialize:
-                worksheet = warehouse.CreateWorkSheet(worksheet.getWorkType());
-                oos.writeObject(worksheet);
-                System.out.println(userName + " új munkalapot hozott létre - TransactionID: " + worksheet.getTransactionID());
-                break;
-            case Approve:
-                worksheet = warehouse.ApproveWorkSheet(worksheet, accounting);
-                oos.writeObject(worksheet);
-                System.out.println(userName + " munkalapot küldött jóváhagyásra - TransactionID: " + worksheet.getTransactionID());
-                break;
-            case Activate:
-                worksheet = warehouse.ActivateWorkSheet(worksheet);
-                oos.writeObject(worksheet);
-                System.out.println(userName + " munkalapot küldött aktiválásra - TransactionID: " + worksheet.getTransactionID());
-                break;
-            case Confirm:
-                worksheet = warehouse.ConfirmWorkSheet(worksheet);
-                oos.writeObject(worksheet);
-                System.out.println(userName + " munkalapot küldött befejezésre - TransactionID: " + worksheet.getTransactionID());
-                break;
-            case Cancel:
-                worksheet = warehouse.CancelWorkSheet(worksheet);
-                oos.writeObject(worksheet);
-                System.out.println(userName + " munkalapot küldött lemondásra - TransactionID: " + worksheet.getTransactionID());
-                break;
-            default:
-                System.out.println(userName + " a DoWork metódust hibás tranzakcióazonosítóval hívta - " + worksheet.getTransaction());
+    // Új foglalás
+    private void doReservation(ObjectOutputStream oos, Reservation reservation, String userName) throws IOException {
+        if (!reservation.isCreated()) {
+            Worksheet worksheet = warehouse.CreateWorkSheet(reservation.getWorkSheetType());
+            oos.writeObject(worksheet);
+            System.out.println(userName + " új munkalapot hozott létre - transactionID: " + worksheet.getTransactionID());
+        } else {
+
         }
+}
+
+    // Munkalap aktiválás
+    private void doReceiving(ObjectOutputStream oos, Receiving receiving, String userName) throws IOException {
+        receiving = warehouse.ActivateWorkSheet(receiving);
+        oos.writeObject(receiving);
+        System.out.println(userName + " munkalapot küldött aktiválásra - transactionID: " + receiving.getTransactionID());
     }
 
     // Teszt metódus
     private void doTest(ObjectOutputStream oos, ServerTest serverTest, String userName) throws IOException {
         // Összeszorozzuk a két számot amit kaptunk az objektumban
-        serverTest.setResult(serverTest.getFirstNumber().intValue() * serverTest.getSecondNumber().intValue());
+        serverTest.setResult(serverTest.getFirstNumber() * serverTest.getSecondNumber());
         System.out.println("DoTest metódust hívta: " + userName);
         // Feldolgozott objektum visszaküldése a kliensnek
         oos.writeObject(serverTest);

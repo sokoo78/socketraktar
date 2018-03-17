@@ -13,14 +13,15 @@ public final class SystemTests {
 
         // Teszt foglalási adatok
         List<Reservation> testReservations = new ArrayList<>();
+
         DateTimeFormatter dateformat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         LocalDateTime dateTime = LocalDateTime.parse("2019-12-01 12:00", dateformat);
 
         // Sikeres foglalások
-        testReservations.add(new Reservation("BEBE", "CIKK75110001", false, 1, LocalDateTime.now().plusDays(1)));
-        testReservations.add(new Reservation("REZO", "NORM65110010", false, 1, LocalDateTime.now().plusDays(1)));
-        testReservations.add(new Reservation("BEBE", "CIKK75110002", false, 2, LocalDateTime.now().plusDays(1)));
-        testReservations.add(new Reservation("REZO", "HUTO75110011", true,  1, LocalDateTime.now().plusDays(1)));
+        testReservations.add(new Reservation("BEBE", "CIKK75110001", false, 1, dateTime));
+        testReservations.add(new Reservation("REZO", "NORM65110010", false, 1, dateTime));
+        testReservations.add(new Reservation("BEBE", "CIKK75110002", false, 2, dateTime));
+        testReservations.add(new Reservation("REZO", "HUTO75110011", true,  1, dateTime));
         testReservations.add(new Reservation("GAPE", "NORM65110010", true,  1, dateTime));
         testReservations.add(new Reservation("GAPE", "NORM65110011", true,  1, dateTime));
         testReservations.add(new Reservation("GAPE", "NORM65110012", true,  1, dateTime));
@@ -35,9 +36,10 @@ public final class SystemTests {
         // 4. Nincs a megadott időpontban szabad terminál
         testReservations.add(new Reservation("GAPE", "NORM65110010", true,  1, dateTime));
 
-        // Inicializálás
+        // Tesztek futtatása
         for (int i = 0; i < testReservations.size(); i++) {
-            Worksheet worksheet = new Worksheet(Worksheet.WorkType.Incoming);
+            // Inicializálás
+            Worksheet worksheet = new Worksheet(Worksheet.WorkSheetType.Incoming);
             worksheet.setTransaction(Worksheet.TransactionType.Initialize);
             oos.writeObject(worksheet);
             worksheet = (Worksheet) ois.readObject();
@@ -53,6 +55,35 @@ public final class SystemTests {
 
             // Tömör kiírás
             UserIO.printWorksheet(worksheet);
+        }
+    }
+
+    // Beérkezési teszt
+    public static void doReceivingTest(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+        List<Receiving> testReceivings = new ArrayList<>();
+        DateTimeFormatter dateformat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+        // Sikeres beérkezések
+        testReceivings.add(new Receiving(1,LocalDateTime.parse("2019-12-01 12:00", dateformat))); // Pont időben
+        testReceivings.add(new Receiving(2,LocalDateTime.parse("2019-12-01 12:15", dateformat))); // Intervallumon belül
+        testReceivings.add(new Receiving(3,LocalDateTime.parse("2019-12-01 12:30", dateformat))); // Utolsó pillanatban
+
+        // Sikertelen beérkezések
+        testReceivings.add(new Receiving(0,LocalDateTime.parse("2019-12-01 11:59", dateformat))); // Nem létező tranzakció
+        testReceivings.add(new Receiving(1,LocalDateTime.parse("2019-12-01 12:00", dateformat))); // Már aktív
+        testReceivings.add(new Receiving(4,LocalDateTime.parse("2019-12-01 11:59", dateformat))); // Egy perccel korábban
+        testReceivings.add(new Receiving(5,LocalDateTime.parse("2019-12-01 12:31", dateformat))); // Egy perccel később
+
+        // Tesztek futtatása
+        for (int i = 0; i < testReceivings.size(); i++) {
+            Receiving receiving = testReceivings.get(i);
+            oos.writeObject(receiving);
+            receiving = (Receiving) ois.readObject();
+            if (receiving.isApproved()){
+                System.out.print("\n" + receiving.getTransactionID() + " OK");
+            } else {
+                System.out.print("\n" + receiving.getTransactionID() + " NOK: " +receiving.getTransactionMessage() + "\t");
+            }
         }
     }
 

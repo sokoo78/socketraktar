@@ -53,8 +53,12 @@ public final class UserIO {
     // Dátum printer
     public static String printDate(LocalDateTime localDateTime){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        String formattedDateTime = formatter.format(localDateTime);
-        return formattedDateTime;
+        return formatter.format(localDateTime);
+    }
+
+    // Dátum ellenőrzése, hogy adott intervallumon belül van-e
+    public static boolean DateisInRange(LocalDateTime startDate, LocalDateTime endDate, LocalDateTime actualDate) {
+        return !(actualDate.isBefore(startDate) || actualDate.isAfter(endDate));
     }
 
     // Munkalap kitöltése a foglalási adatokkal
@@ -78,4 +82,5 @@ public final class UserIO {
         System.out.print("\tFoglalás: ");
         System.out.print(worksheet.isApproved() ? "OK" : "NOK - " + worksheet.getTransactionMessage());
     }
+
 }

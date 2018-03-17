@@ -16,16 +16,17 @@ public class Dispatcher extends Employee implements Serializable {
     static void newReservation(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
+        // Új foglalási kérelem
+        Reservation reservation = new Reservation();
+        reservation.WorkSheetType = Worksheet.WorkSheetType.Incoming;
+
         // Tranzakciószám kérése a szervertől
-        Worksheet worksheet = new Worksheet(Worksheet.WorkType.Incoming);
-        worksheet.setTransaction(Worksheet.TransactionType.Initialize);
-        oos.writeObject(worksheet);
-        worksheet = (Worksheet)ois.readObject();
+        oos.writeObject(reservation);
+        reservation = (Reservation) ois.readObject();
         System.out.print("\nÚj munkalap létrehozva - Tranzakcióazonosító: " +
-                worksheet.getTransactionID() + " (isInitialized: " + worksheet.isInitialized() + ")");
+                reservation.getTransactionID() + " (isInitialized: " + reservation.isCreated() + ")");
 
         // Kérelem adatainak bekérése a munkalapra
-        Reservation reservation = new Reservation();
         System.out.print("\nVevőkód: ");
         reservation.RenterID = br.readLine();
         System.out.print("Cikkszám: ");
@@ -36,29 +37,40 @@ public class Dispatcher extends Employee implements Serializable {
         reservation.Pallets = Integer.parseInt(br.readLine());
         System.out.println("Foglalás időpontja (Példa: " + UserIO.printDate(LocalDateTime.now()) + "):");
         reservation.ReservationDate = UserIO.readDate(true);
-        System.out.print("Idő kerekítve: " + UserIO.printDate(worksheet.getReservedDate()));
-
-        UserIO.fillWorkSheet(worksheet,reservation);
+        System.out.print("Idő kerekítve: " + UserIO.printDate(reservation.getReservationDate()));
 
         // Foglalás adatainak ellenőrzése, előfoglalás
         System.out.print("\nFoglalási adatok ellenőrzése.. ");
-        worksheet.setTransaction(Worksheet.TransactionType.Approve);
-        oos.writeObject(worksheet);
-        worksheet = (Worksheet)ois.readObject();
-        if (worksheet.isApproved()) {
+        oos.writeObject(reservation);
+        reservation = (Reservation) ois.readObject();
+        if (reservation.isApproved()) {
             System.out.print("Foglalási adatok elfogadva!");
         }
         else {
             System.out.print("Foglalási adatok elutasítva!");
-            System.out.print("\nSzerver üzenete: " + worksheet.getTransactionMessage());
+            System.out.print("\nSzerver üzenete: " + reservation.getTransactionMessage());
         }
 
         // TODO: Foglalás jóváhagyása, vagy törlése
     }
 
-    // TODO: Kifejtendő -
-    static void doReceiving(ObjectOutputStream oos, ObjectInputStream ois) {
-
+    // Beszállítás (megérkezett a szállítmány)
+    static void doReceiving(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        // Beérkezés adatainak bekérése
+        System.out.print("Tranzakció azonosító: ");         // Munkalap sorszáma
+        int transactionID = Integer.parseInt(br.readLine());
+        System.out.print("Beérkezés időpontja: ");          // TODO: a dátumot teszt célból kell megadni, realtime működés esetén nem kell
+        LocalDateTime receivingDate = UserIO.readDate(false);
+        Receiving receiving = new Receiving(transactionID, receivingDate);
+        oos.writeObject(receiving);
+        receiving = (Receiving) ois.readObject();
+        if (receiving.isApproved()){
+            System.out.print("Beszállítási adatok elfogadva - munkalap aktiválva!"); // TODO: munkalapot aktiválni
+        } else {
+            System.out.print("Beszállítási adatok elutasítva!");
+            System.out.print("\nSzerver üzenete: " + receiving.getTransactionMessage());
+        }
     }
 
     // TODO: Kifejtendő - Új Kiszállítás
