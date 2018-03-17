@@ -44,9 +44,9 @@ public class ServerThread extends Thread {
                     doWork(objectOutputStream, (Worksheet)object, employee.getName());
                 }
 
-                // Test típusú üzenet feldolgozása
-                if (object instanceof Test) {
-                    doTest(objectOutputStream, (Test)object, employee.getName());
+                // ServerTest típusú üzenet feldolgozása
+                if (object instanceof ServerTest) {
+                    doTest(objectOutputStream, (ServerTest)object, employee.getName());
                 }
 
                 // Report típusú üzenet feldolgozása
@@ -120,11 +120,11 @@ public class ServerThread extends Thread {
     }
 
     // Teszt metódus
-    private void doTest(ObjectOutputStream oos, Test test, String userName) throws IOException {
+    private void doTest(ObjectOutputStream oos, ServerTest serverTest, String userName) throws IOException {
         // Összeszorozzuk a két számot amit kaptunk az objektumban
-        test.setResult(test.getFirstNumber().intValue() * test.getSecondNumber().intValue());
+        serverTest.setResult(serverTest.getFirstNumber().intValue() * serverTest.getSecondNumber().intValue());
         System.out.println("DoTest metódust hívta: " + userName);
         // Feldolgozott objektum visszaküldése a kliensnek
-        oos.writeObject(test);
+        oos.writeObject(serverTest);
     }
 }

@@ -8,7 +8,7 @@ public class Employee implements Serializable {
     private static final long serialVersionUID = 2435010565803855201L;
 
     // Dolgozó típusok
-    public enum UserType {Diszpécser, Raktáros, Könyvelő}
+    public enum UserType {Dispatcher, Storekeeper, Reports, Tests}
 
     // Tranzakció flagek
     public enum TransactionType {Login, Logout}
@@ -29,14 +29,17 @@ public class Employee implements Serializable {
         this.position = position;
     }
 
+    // Dolgozók közös metódusai
+
+    protected void showMenu(){
+        // TODO ehhez javítani kell az ojjektum létrehozást..
+    }
+
     // Getterek, setterek
 
     public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+        if (this.name != null) return this.name;
+        else return "n/a";
     }
 
     public int getPositionID(){
@@ -47,19 +50,11 @@ public class Employee implements Serializable {
         return position;
     }
 
-    public void setPosition(UserType position) {
-        this.position = position;
-    }
-
     public boolean isLoggedin() {
         return isLoggedin;
     }
 
     public void setLoggedin() {
         isLoggedin = true;
-    }
-
-    public void setLoggedout() {
-        isLoggedin = false;
     }
 }

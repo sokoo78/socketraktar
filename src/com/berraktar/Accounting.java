@@ -1,7 +1,6 @@
 package com.berraktar;
 
-import java.io.File;
-import java.io.Serializable;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,6 +22,13 @@ public class Accounting implements Serializable {
         else {
             this.createTestRenters();
         }
+    }
+
+    private static void GetReport(ObjectOutputStream oos, ObjectInputStream ois, Report.ReportType reportType) throws IOException, ClassNotFoundException {
+        Report report = new Report(reportType);
+        oos.writeObject(report);
+        report = (Report) ois.readObject();
+        System.out.println(report.getReply());
     }
 
     public int getTotalCooledReservations(){

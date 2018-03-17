@@ -261,7 +261,7 @@ public class Warehouse implements Serializable {
         // Ha a megadott dátum alatt létezik már terminállista, akkor hozzá kell adni az új foglalást
         if (terminalList != null) {
             if (terminalList.size() < maxTerminals) {   // Nem foglalt az összes terminál
-                for (int i = 1; i < maxTerminals; i++){ // Első szabad terminál sorszámának keresése és visszaadása
+                for (int i = 1; i <= maxTerminals; i++){ // Első szabad terminál sorszámának keresése és visszaadása (1-es ID van a 0. helyen!)
                     if (!terminalList.contains(i)){
                         terminalList.add(i);
                         return i;
@@ -286,7 +286,7 @@ public class Warehouse implements Serializable {
         return 0;
     }
 
-    // Jelentések
+    // Reports
 
     // TODO: bérlők jelentés
     public synchronized Report RenterReport(Report report) {

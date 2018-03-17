@@ -5,7 +5,7 @@ package com.berraktar;
 
 import java.io.Serializable;
 
-public class Test implements Serializable {
+public class ServerTest implements Serializable {
 
     private static final long serialVersionUID = 8745960972757367043L;
     // Ezt a két számot fogjuk megadni
@@ -15,7 +15,7 @@ public class Test implements Serializable {
     // Össze fogjuk szorozni őket a szerveren
     Integer result = null;
 
-    public Test(Integer firstNumber, Integer secondNumber){
+    public ServerTest(Integer firstNumber, Integer secondNumber){
         this.firstNumber = firstNumber;
         this.secondNumber = secondNumber;
     }
