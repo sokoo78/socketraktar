@@ -50,6 +50,11 @@ class ServerThread extends Thread {
                     doReceiving(objectOutputStream, (Receiving)object, employee.getName());
                 }
 
+                // Unloading típusú üzenet feldolgozása
+                if (object instanceof Unloading) {
+                    doUnloading(objectOutputStream, (Unloading)object, employee.getName());
+                }
+
                 // ServerTest típusú üzenet feldolgozása
                 if (object instanceof ServerTest) {
                     doServerTest(objectOutputStream, (ServerTest)object, employee.getName());
@@ -125,11 +130,23 @@ class ServerThread extends Thread {
             System.out.println(userName + " munkalapot küldött aktiválásra - transactionID: " + receiving.getTransactionID());
         }
         // Beérkeztetés indítása
-        else {
+        else if (!receiving.isConfirmed()){
             receiving = warehouse.ProcessWorkSheet(receiving);
             oos.writeObject(receiving);
             System.out.println(userName + " munkalapot küldött végrehajtásra - transactionID: " + receiving.getTransactionID());
         }
+        // Beérkezés visszaigazolása, és lezárása
+        else {
+            receiving = warehouse.ConfirmWorkSheet(receiving);
+            oos.writeObject(receiving);
+            System.out.println(userName + " munkalapot küldött lezárásra - transactionID: " + receiving.getTransactionID());
+        }
+    }
+
+    private void doUnloading(ObjectOutputStream oos, Unloading unloading, String userName) throws IOException {
+        unloading = warehouse.UnloadWorkSheet(unloading);
+        oos.writeObject(unloading);
+        System.out.println(userName + " munkalapot küldött aktiválásra - transactionID: " + unloading.getTransactionID());
     }
 
     // Szerver teszt

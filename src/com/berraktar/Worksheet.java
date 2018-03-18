@@ -20,24 +20,39 @@ public class Worksheet implements Serializable {
     private boolean isInitialized = false;  // Van már tranzakcióazonosítója
     private boolean isApproved = false;     // Teljesíthető az igény
     private boolean isActive = false;       // Kocsi beérkezett
-    private boolean isConfirmed = false;    // Végrehajtva
-    private boolean isCancelled = false;    // Végrehajtva
+    private boolean isProcessing = false;   // Rakodás folyamatban
+    private boolean isCompleted = false;    // Végrehajtva
+    private boolean isCancelled = false;    // Visszamondva
 
     // Igénylési adatok - diszpécser adja meg
     private String renterID;                // Bérlő
     private LocalDateTime reservedDate;     // Igényelt időpont
     private LocalDateTime receivedDate;     // Beérkezés időpontja
-    private String externalPartNumber;              // Vevői cikkszám
+    private String externalPartNumber;      // Vevői cikkszám
     private boolean isCooled;               // Hűtendő vagy normál
     private int numberOfPallets;            // Paletták száma
+    private int unloadedPallets;            // Paletták száma
 
     // Tárolási adatok - szerver adja meg
     private List<Integer> locations;
     private int terminalID;
 
     // Konstruktor
-    public Worksheet(WorkSheetType worktype) {
+    Worksheet(WorkSheetType worktype) {
         this.workSheetType = worktype;
+    }
+
+    // Műveletek
+
+    // Paletta kipakolás
+    public Pallet takePallet () {
+        Pallet pallet = new Pallet(this.getRenterID(), this.getExternalPartNumber());
+        if (this.unloadedPallets < this.numberOfPallets){
+            unloadedPallets++;
+        } else {
+            return null; // Nincs több paletta
+        }
+        return pallet;
     }
 
     // Getterek, Setterek
@@ -47,7 +62,8 @@ public class Worksheet implements Serializable {
         if (this.isInitialized) status = "Létrehozva  ";
         if (this.isApproved) status    = "Elfogadva   ";
         if (this.isActive) status      = "Aktív       ";
-        if (this.isConfirmed) status   = "Végrehajtva ";
+        if (this.isProcessing) status  = "Folyamatban ";
+        if (this.isCompleted) status   = "Végrehajtva ";
         if (this.isCancelled) status   = "Visszamondva";
         return status;
     }
@@ -70,10 +86,6 @@ public class Worksheet implements Serializable {
 
     public void setApproved() {
         isApproved = true;
-    }
-
-    public void updateApproved(boolean isApproved){
-        this.isCooled = isApproved;
     }
 
     public boolean isActive() {
@@ -136,12 +148,12 @@ public class Worksheet implements Serializable {
         this.numberOfPallets = numberOfPallets;
     }
 
-    public boolean isConfirmed() {
-        return isConfirmed;
+    public boolean isCompleted() {
+        return isCompleted;
     }
 
     public void setConfirmed() {
-        isConfirmed = true;
+        isCompleted = true;
     }
 
     public boolean isCancelled() {
@@ -175,4 +187,13 @@ public class Worksheet implements Serializable {
     public void setReceivedDate(LocalDateTime receivedDate) {
         this.receivedDate = receivedDate;
     }
+
+    public void setProcessing() {
+        this.isProcessing = true;
+    }
+
+    public int getUnloadedPallets() {
+        return unloadedPallets;
+    }
+
 }

@@ -10,11 +10,21 @@ public class Terminal implements Serializable {
 
     // Terminál tulajdonságai
     private final int id;
+    private boolean isFree;
     private Map<String, Pallet> palletList = new HashMap<>();
 
     // Konstruktor
-    public Terminal(int id) {
+    Terminal(int id) {
         this.id = id;
+    }
+
+
+    // Műveletek
+
+    public Pallet takePallet(String palletID){
+        Pallet _pallet = palletList.get(palletID);
+        palletList.remove(palletID);
+        return _pallet;
     }
 
     // Getterek, Setterek
@@ -31,13 +41,19 @@ public class Terminal implements Serializable {
         palletList.put(pallet.getInternalPartNumber(), pallet);
     }
 
-    public Pallet takePallet(String palletID){
-        Pallet _pallet = palletList.get(palletID);
-        palletList.remove(palletID);
-        return _pallet;
-    }
-
     public int getId() {
         return id;
+    }
+
+    public boolean isFree() {
+        return isFree;
+    }
+
+    public void setFree() {
+        isFree = true;
+    }
+
+    public void setOccupied() {
+        isFree = false;
     }
 }

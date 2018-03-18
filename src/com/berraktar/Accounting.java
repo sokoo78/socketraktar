@@ -18,7 +18,7 @@ class Accounting implements Serializable {
     }
 
     // Bérlők adatainak betöltése
-    private void loadAccountingState(){
+    private synchronized void loadAccountingState(){
         if (new File("Renters.ser").exists()) {
             this.renters = (Map<String, Renter>) Persistency.LoadObject("Renters.ser");
         }
@@ -29,44 +29,45 @@ class Accounting implements Serializable {
     }
 
     // Bérlők adatainak mentése
-    private void saveAccountingState(){
+    private synchronized void saveAccountingState(){
         Persistency.SaveObject(this.getRenters(), "Renters.ser");
     }
 
-    private static void GetReport(ObjectOutputStream oos, ObjectInputStream ois, Report.ReportType reportType) throws IOException, ClassNotFoundException {
+    private synchronized static void GetReport(ObjectOutputStream oos, ObjectInputStream ois, Report.ReportType reportType) throws IOException, ClassNotFoundException {
         Report report = new Report(reportType);
         oos.writeObject(report);
         report = (Report) ois.readObject();
         System.out.println(report.getReply());
     }
 
-    public int getTotalCooledReservations(){
+    public synchronized int getTotalCooledReservations(){
         return renters.values().stream().mapToInt(i -> i.getRentedCooledLocations()).sum();
     }
 
-    public int getTotalNormalReservations(){
+    public synchronized int getTotalNormalReservations(){
         return renters.values().stream().mapToInt(i -> i.getRentedNormalLocations()).sum();
     }
 
-    public void addLogisticsOperations (String renterID, int numberOfOperations){
+    public synchronized void addLogisticsOperations (String renterID, int numberOfOperations){
         this.getRenter(renterID).addLogisticsOperations(numberOfOperations);
+        saveAccountingState();
     }
 
-    public Renter getRenter(String renterID){
+    public synchronized Renter getRenter(String renterID){
         Renter renter = this.renters.get(renterID);
         return renter;
     }
 
-    public Map<String, Renter> getRenters() {
+    public synchronized Map<String, Renter> getRenters() {
         return this.renters;
     }
 
-    private void setRenters(Map<String, Renter> renters) {
+    private synchronized void setRenters(Map<String, Renter> renters) {
         this.renters = renters;
     }
 
     // Teszt bérlők
-    private void createTestRenters(){
+    private synchronized void createTestRenters(){
         Renter renter_1 = new Renter(
                 "Bérlő Béla",
                 "BEBE",

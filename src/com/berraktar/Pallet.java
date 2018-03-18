@@ -9,6 +9,11 @@ public class Pallet {
     // Konstruktorok
     public Pallet() {}
 
+    public Pallet(String renterID, String externalPartNumber) {
+        this.setRenterID(renterID);
+        this.setExternalPartNumber(externalPartNumber);
+    }
+
     public Pallet(String internalPartNumber, String externalPartNumber, String renterID) {
         this.internalPartNumber = internalPartNumber;
         this.externalPartNumber = externalPartNumber;

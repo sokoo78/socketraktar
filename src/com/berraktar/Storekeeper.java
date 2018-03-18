@@ -9,23 +9,74 @@ public class Storekeeper extends Employee {
     }
 
     // TODO: Bevételzés
-    public static void doReceiving(ObjectOutputStream oos, ObjectInputStream ois) throws IOException {
+    public static void doReceiving(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        System.out.print("Tranzakció azonosító: ");         // Munkalap sorszáma
-        int transactionID = Integer.parseInt(br.readLine());
-        // TODO: Incoming tranzakciót létrehozni
-        // TODO: Lekérni a foglalási adatokat (Bérlő, terminál, raklapok, lokációk)
-        // TODO: ciklus < ahány paletta van:
-        // TODO:    - bekérni a bérlő cikkszámát (externalPartNumber)
-        // TODO:    - bekérni a belső cikkszámot (internalPartNumber) -> ehhez kell egy generátor eljárás a szerveren
-        // TODO:    - kiírni  a cikkszámokat
+
+        // Munkalap adatok lekérése a szerverről
+        System.out.print("Tranzakció azonosító: "); // Munkalap sorszáma
+        Receiving receiving = new Receiving(Integer.parseInt(br.readLine()));
+        oos.writeObject(receiving);
+        receiving = (Receiving)ois.readObject();
+        if (receiving.isProcessing()){
+            System.out.print("Beszállítás rendben - munkalap folyamatban!");
+        } else {
+            System.out.print("Beszállítási adatok elutasítva!");
+            System.out.print("\nSzerver üzenete: " + receiving.getTransactionMessage());
+        }
+
+        // Paletták szkennelése és kipakolása
+        for (int i = 0; i < receiving.getPallets(); i++) {
+            System.out.print("Szkenneld be az " + i + ". palettát (Bérlő cikkszáma: " +
+                    receiving.getExternalPartNumber() + "): ");
+            String scannedPartNumber = br.readLine();
+            while (scannedPartNumber != receiving.getExternalPartNumber()) {
+                System.out.println("A beszkennelt cikkszám nem egyezik a foglaláson szereplő cikkszámmal!");
+                System.out.print("Szkenneld be az " + i + ". palettát (Bérlő cikkszáma: " +
+                        receiving.getExternalPartNumber() + "): ");
+                scannedPartNumber = br.readLine();
+            }
+
+            // Paletta lejelentése a szervernek
+            Unloading unloading = new Unloading(receiving.getTransactionID(), scannedPartNumber);
+            oos.writeObject(unloading);
+            unloading = (Unloading)ois.readObject();
+            if (unloading.isConfirmed()){
+                receiving.setInternalPartNumber(unloading.getInternalPartNumber());
+                System.out.print("Paletta sikeresen kirakva a " + receiving.getTerminalID() + "terminálra!");
+            } else {
+                System.out.print("Paletta kirakás elutasítva!");
+                System.out.print("\nSzerver üzenete: " + receiving.getTransactionMessage());
+            }
+        }
+
+        // Munkalap lejelentése a szervernek
+        System.out.print("Tranzakció készrejelentése (i/n): "); // Munkalap sorszáma
+        boolean isConfirmed = UserIO.readBoolean();
+        if (isConfirmed){
+            receiving.setUnloaded();
+            oos.writeObject(receiving);
+            receiving = (Receiving)ois.readObject();
+            if (receiving.isCompleted()){
+                System.out.print("Beszállítás rendben - munkalap lezárva!");
+            } else {
+                System.out.print("Beszállítás lejelentése elutasítva!");
+                System.out.print("\nSzerver üzenete: " + receiving.getTransactionMessage());
+            }
+        }
+
         // TODO: jóváhagyás kérése -> lokációba helyezés
         // TODO: felszabadítani a terminált, lejelenteni a logisztikai műveletet
         // TODO: a log műveleteket átrakni a munkalapra, és csak annak megszűnésekor lejelenteni (confirmed / cancel esetén)
 
     }
+
     // TODO: Kiszállítás
     public static void doShipping(ObjectOutputStream oos, ObjectInputStream ois) {
 
+    }
+
+    // Belső cikkszám generálás - vevőkódot hozzáadja prefixumként, lehet szofisztikálni ha kell..
+    private static String generateInternalPartNumber(Receiving receiving) {
+        return receiving.getRenterID() + "-" + receiving.getExternalPartNumber();
     }
 }
