@@ -66,7 +66,36 @@ public class Client {
                 input = br.readLine();
             }
         }
-        // TODO: Storekeeper menü
+        // Raktáros menü
+        if (positionID == 2){
+            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+            System.out.print("\nBérraktár raktáros menü:\n\t" +
+                    "1. Beérkezések\n\t" +
+                    "2. Kiszállítások\n\t" +
+                    "3. Kilépés\n" +
+                    "Válassz menüpontot: ");
+            String input = br.readLine();
+            while(!input.equals("3")){
+                switch(input){
+                    case "1":
+                        Storekeeper.doReceiving(oos, ois);
+                        break;
+                    case "2":
+                        Storekeeper.doShipping(oos, ois);
+                        break;
+                    default:
+                        System.out.println("A megadott menüpont nem létezik! (" + input + ")");
+                }
+                System.out.print("\nNyomj ENTER-t a folytatáshoz!");
+                System.in.read();
+                System.out.print("\nBérraktár raktáros menü:\n\t" +
+                        "1. Beérkezések\n\t" +
+                        "2. Kiszállítások\n\t" +
+                        "3. Kilépés\n" +
+                        "Válassz menüpontot: ");
+                input = br.readLine();
+            }
+        }
         // Reports menü
         if (positionID == 3){
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -89,12 +118,15 @@ public class Client {
                     case "3":
                         GetReport(oos, ois, Report.ReportType.Locations);
                         break;
+                    case "4":
+                        GetReport(oos, ois, Report.ReportType.Terminals);
+                        break;
                     default:
                         System.out.println("A megadott menüpont nem létezik! (" + input + ")");
                 }
                 System.out.print("\nNyomj ENTER-t a folytatáshoz!");
                 System.in.read();
-                System.out.print("\nBérraktár könyvelés menü:\n\t" +
+                System.out.print("\nBérraktár jelentések menü:\n\t" +
                         "1. Ügyfél lista\n\t" +
                         "2. Munkalap lista\n\t" +
                         "3. Lokáció lista\n\t" +

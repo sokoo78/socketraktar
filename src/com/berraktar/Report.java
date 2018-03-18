@@ -7,25 +7,21 @@ public class Report implements Serializable {
     private static final long serialVersionUID = 5843645352677089659L;
 
     // Jelentés típusok
-    public enum ReportType {Renters, Worksheets, Locations}
+    public enum ReportType {Renters, Worksheets, Locations, Terminals, Receivings, Shipments}
 
     // Jelentés tulajdonságai
-    private ReportType report;
+    private ReportType reportType;
     private String reply;
 
     // Konstruktor
-    public Report(ReportType report) {
-        this.report = report;
+    public Report(ReportType reportType) {
+        this.reportType = reportType;
     }
 
     // Getterek, setterek
 
-    public ReportType getReport() {
-        return report;
-    }
-
-    public void setReport(ReportType report) {
-        this.report = report;
+    public ReportType getReportType() {
+        return reportType;
     }
 
     public String getReply() {

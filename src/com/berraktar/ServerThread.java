@@ -71,21 +71,30 @@ class ServerThread extends Thread {
     }
 
     private void doReport(ObjectOutputStream oos, Report report, String userName) throws IOException {
-        switch (report.getReport()){
+        switch (report.getReportType()){
             case Renters:
                 report = warehouse.RenterReport(report);
                 oos.writeObject(report);
-                System.out.println(userName + " jelentést kért: " + report.getReport());
+                System.out.println(userName + " jelentést kért: " + report.getReportType());
                 break;
             case Worksheets:
                 report = warehouse.WorksheetReport(report);
                 oos.writeObject(report);
-                System.out.println(userName + " jelentést kért: " + report.getReport());
+                System.out.println(userName + " jelentést kért: " + report.getReportType());
                 break;
             case Locations:
                 report = warehouse.LocationReport(report);
                 oos.writeObject(report);
-                System.out.println(userName + " jelentést kért: " + report.getReport());
+                System.out.println(userName + " jelentést kért: " + report.getReportType());
+                break;
+            case Terminals:
+                report = warehouse.TerminalReport(report);
+                oos.writeObject(report);
+                System.out.println(userName + " jelentést kért: " + report.getReportType());
+                break;
+            case Receivings:
+                break;
+            case Shipments:
                 break;
         }
     }

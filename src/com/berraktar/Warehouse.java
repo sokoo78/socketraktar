@@ -379,10 +379,6 @@ public class Warehouse implements Serializable {
         reply.append(this.freeNormalLocation).append(" / ").append(this.getMaxNormalLocation()).append("\n");
         reply.append("Szabad / maximális hűtött lokációk száma:   \t");
         reply.append(this.freeCooledLocation).append(" / ").append(this.getMaxCooledLocation()).append("\n");
-        reply.append("Szabad / maximális normál terminálok száma: \t");
-        reply.append(this.freeNormalTerminal).append(" / ").append(this.getMaxNormalTerminal()).append("\n");
-        reply.append("Szabad / maximális hűtött terminálok száma: \t");
-        reply.append(this.freeCooledTerminal).append(" / ").append(this.getMaxCooledTerminal()).append("\n");
 
         // Lokáció részletek
         reply.append("\nFoglalt normál lokációk listája\n");
@@ -408,6 +404,42 @@ public class Warehouse implements Serializable {
                 reply.append(value.scanPalletInternalID()).append("\t\t\t");
                 reply.append(value.scanPalletExternalID()).append("\t\t\t");
             }
+        }
+    }
+
+    // Terminál foglalások jelentés - TODO ez még valamiért nem müxik
+    public synchronized Report TerminalReport(Report report) {
+        StringBuilder reply = new StringBuilder();
+        Map<Integer,Location> normalTerminals = this.normalLocations;
+        Map<Integer,Location> cooledTerminals = this.cooledLocations;
+
+        // Fejléc
+        reply.append("\nTerminál foglalások\n\n");
+
+        // Terminál fő adatok
+        reply.append("Szabad / maximális normál terminálok száma: \t");
+        reply.append(this.freeNormalTerminal).append(" / ").append(this.getMaxNormalTerminal()).append("\n");
+        reply.append("Szabad / maximális hűtött terminálok száma: \t");
+        reply.append(this.freeCooledTerminal).append(" / ").append(this.getMaxCooledTerminal()).append("\n");
+
+        // Terminál részletek
+        reply.append("\nNormál terminál foglalások listája\n");
+        reply.append("\nDátum\t\t\tTerminálok");
+        getTerminalList(reply, reservedNormalTerminals);
+
+        reply.append("\n\nHűtött terminál foglalások listája\n");
+        reply.append("\nDátum\t\t\tTerminálok");
+        getTerminalList(reply, reservedCooledTerminals);
+
+        // Válasz mentése a jelentésbe
+        report.setReply(reply.toString());
+        return report;
+    }
+
+    private void getTerminalList(StringBuilder reply, ConcurrentHashMap<LocalDateTime, List<Integer>> terminals) {
+        for (Map.Entry<LocalDateTime, List<Integer>> entry : terminals.entrySet()) {
+            reply.append("\n").append(entry.getKey()).append("\t\t").append(entry.getValue());
+            System.out.println(reply);
         }
     }
 
