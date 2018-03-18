@@ -15,6 +15,7 @@ public class Storekeeper extends Employee {
         // Munkalap adatok lekérése a szerverről
         System.out.print("Tranzakció azonosító: "); // Munkalap sorszáma
         Receiving receiving = new Receiving(Integer.parseInt(br.readLine()));
+        receiving.setApproved();
         oos.writeObject(receiving);
         receiving = (Receiving)ois.readObject();
         if (receiving.isProcessing()){
@@ -35,14 +36,14 @@ public class Storekeeper extends Employee {
                         receiving.getExternalPartNumber() + "): ");
                 scannedPartNumber = br.readLine();
             }
+            receiving.setInternalPartNumber(generateInternalPartNumber(receiving));
 
             // Paletta lejelentése a szervernek
-            Unloading unloading = new Unloading(receiving.getTransactionID(), scannedPartNumber);
+            Unloading unloading = new Unloading(receiving.getTransactionID(), receiving.getInternalPartNumber());
             oos.writeObject(unloading);
             unloading = (Unloading)ois.readObject();
             if (unloading.isConfirmed()){
-                receiving.setInternalPartNumber(unloading.getInternalPartNumber());
-                System.out.print("Paletta sikeresen kirakva a " + receiving.getTerminalID() + "terminálra!");
+                System.out.print("Paletta sikeresen kirakva a " + receiving.getTerminalID() + " terminálra!");
             } else {
                 System.out.print("Paletta kirakás elutasítva!");
                 System.out.print("\nSzerver üzenete: " + receiving.getTransactionMessage());
@@ -63,11 +64,6 @@ public class Storekeeper extends Employee {
                 System.out.print("\nSzerver üzenete: " + receiving.getTransactionMessage());
             }
         }
-
-        // TODO: jóváhagyás kérése -> lokációba helyezés
-        // TODO: felszabadítani a terminált, lejelenteni a logisztikai műveletet
-        // TODO: a log műveleteket átrakni a munkalapra, és csak annak megszűnésekor lejelenteni (confirmed / cancel esetén)
-
     }
 
     // TODO: Kiszállítás
@@ -76,7 +72,7 @@ public class Storekeeper extends Employee {
     }
 
     // Belső cikkszám generálás - vevőkódot hozzáadja prefixumként, lehet szofisztikálni ha kell..
-    private static String generateInternalPartNumber(Receiving receiving) {
+    static String generateInternalPartNumber(Receiving receiving) {
         return receiving.getRenterID() + "-" + receiving.getExternalPartNumber();
     }
 }

@@ -142,9 +142,10 @@ public class Client {
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             System.out.print("\nBérraktár tesztek menü:\n\t" +
                     "1. Foglalás teszt\n\t" +
-                    "2. Beszállítás teszt\n\t" +
-                    "3. Szerver teszt\n\t" +
-                    "4. Kilépés\n" +
+                    "2. Beérkezés teszt\n\t" +
+                    "3. Bevételezés teszt\n\t" +
+                    "4. Szerver teszt\n\t" +
+                    "5. Kilépés\n" +
                     "Válassz menüpontot: ");
             String input = br.readLine();
             while(!input.equals("4")){
@@ -156,6 +157,9 @@ public class Client {
                         SystemTests.doReceivingTest(oos, ois);
                         break;
                     case "3":
+                        SystemTests.doIncomingTest(oos, ois);
+                        break;
+                    case "4":
                         SystemTests.doServerTest(oos, ois);
                         break;
                     default:
@@ -165,9 +169,10 @@ public class Client {
                 System.in.read();
                 System.out.print("\nBérraktár tesztek menü:\n\t" +
                         "1. Foglalás teszt\n\t" +
-                        "2. Beszállítás teszt\n\t" +
-                        "3. Szerver teszt\n\t" +
-                        "4. Kilépés\n" +
+                        "2. Beérkezés teszt\n\t" +
+                        "3. Bevételezés teszt\n\t" +
+                        "4. Szerver teszt\n\t" +
+                        "5. Kilépés\n" +
                         "Válassz menüpontot: ");
                 input = br.readLine();
             }

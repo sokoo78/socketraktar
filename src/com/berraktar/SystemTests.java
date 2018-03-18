@@ -6,10 +6,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.berraktar.Storekeeper.generateInternalPartNumber;
+
 public final class SystemTests {
 
     // Foglalási teszt
     public static void doNewReservationTest(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+        System.out.println("\n Foglalási teszt\n");
 
         // Teszt foglalási adatok
         List<Reservation> testReservations = new ArrayList<>();
@@ -24,7 +27,7 @@ public final class SystemTests {
         testReservations.add(new Reservation("REZO", "HUTO75110011", true,  1, dateTime));
         testReservations.add(new Reservation("GAPE", "NORM65110010", true,  1, dateTime));
         testReservations.add(new Reservation("GAPE", "NORM65110011", true,  1, dateTime));
-        testReservations.add(new Reservation("GAPE", "NORM65110012", true,  1, dateTime));
+        testReservations.add(new Reservation("GAPE", "NORM65110012", true,  1, dateTime.plusDays(2)));
 
         // Sikertelen foglalások
         // 1. Bérlő nem létezik
@@ -56,6 +59,8 @@ public final class SystemTests {
 
     // Beérkezési teszt
     public static void doReceivingTest(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+        System.out.println("\n Beérkezési teszt\n");
+
         List<Receiving> testReceivings = new ArrayList<>();
         DateTimeFormatter dateformat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
@@ -83,6 +88,44 @@ public final class SystemTests {
         }
     }
 
+    public static void doIncomingTest(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+        System.out.println("\n Bevételezés teszt\n");
+
+        // Adatok lekérése a szerverről az 1-es teszt tranzakcióhoz
+        Receiving receiving = new Receiving(1);
+        receiving.setApproved();
+        oos.writeObject(receiving);
+        receiving = (Receiving)ois.readObject();
+        if (receiving.isProcessing()){
+            System.out.print("\nAdatlekérés OK");
+        } else {
+            System.out.print("\nAdatlekérés NOK - Szerver üzenete: " + receiving.getTransactionMessage());
+        }
+
+        // Paletták szkennelése és kipakolása
+        for (int i = 0; i < receiving.getPallets(); i++) {
+            receiving.setInternalPartNumber(generateInternalPartNumber(receiving));
+            Unloading unloading = new Unloading(receiving.getTransactionID(), receiving.getInternalPartNumber());
+            oos.writeObject(unloading);
+            unloading = (Unloading)ois.readObject();
+            if (unloading.isConfirmed()){
+                System.out.print("\nKirakodás OK " + receiving.getTerminalID() + " terminálra!");
+            } else {
+                System.out.print("\nKirakodás NOK - Szerver üzenete: " + receiving.getTransactionMessage());
+            }
+        }
+
+        // Munkalap lejelentése a szervernek
+        receiving.setUnloaded();
+        oos.writeObject(receiving);
+        receiving = (Receiving)ois.readObject();
+        if (receiving.isCompleted()){
+            System.out.print("\nBevételezés OK");
+        } else {
+            System.out.print("\nBevételezés NOK - Szerver üzenete: " + receiving.getTransactionMessage());
+        }
+    }
+
     // Szerver teszt
     static void doServerTest(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -105,4 +148,5 @@ public final class SystemTests {
         ServerTest returnServerTest = (ServerTest)ois.readObject();
         System.out.println("Eredmény: " + returnServerTest.getResult());
     }
+
 }

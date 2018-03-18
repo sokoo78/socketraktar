@@ -9,7 +9,7 @@ public class Location implements Serializable {
     // Lokáció tulajdonságai
     private final int locationID;
     private final String RenterID;
-    private Pallet pallet = null;
+    private Pallet pallet = new Pallet();
 
     // Lokáció állapota
     private boolean isReserved = false;

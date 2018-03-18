@@ -38,7 +38,7 @@ public class Terminal implements Serializable {
     }
 
     public void addPallet(Pallet pallet){
-        palletList.put(pallet.getInternalPartNumber(), pallet);
+        this.palletList.put(pallet.getInternalPartNumber(), pallet);
     }
 
     public int getId() {

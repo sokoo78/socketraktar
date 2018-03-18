@@ -130,14 +130,13 @@ class ServerThread extends Thread {
             System.out.println(userName + " munkalapot küldött aktiválásra - transactionID: " + receiving.getTransactionID());
         }
         // Beérkeztetés indítása
-        else if (!receiving.isConfirmed()){
+        else if (!receiving.isUnloaded()){
             receiving = warehouse.ProcessWorkSheet(receiving);
             oos.writeObject(receiving);
             System.out.println(userName + " munkalapot küldött végrehajtásra - transactionID: " + receiving.getTransactionID());
-        }
+        } else {
         // Beérkezés visszaigazolása, és lezárása
-        else {
-            receiving = warehouse.ConfirmWorkSheet(receiving);
+            receiving = warehouse.CompleteWorkSheet(receiving);
             oos.writeObject(receiving);
             System.out.println(userName + " munkalapot küldött lezárásra - transactionID: " + receiving.getTransactionID());
         }
@@ -146,7 +145,7 @@ class ServerThread extends Thread {
     private void doUnloading(ObjectOutputStream oos, Unloading unloading, String userName) throws IOException {
         unloading = warehouse.UnloadWorkSheet(unloading);
         oos.writeObject(unloading);
-        System.out.println(userName + " munkalapot küldött aktiválásra - transactionID: " + unloading.getTransactionID());
+        System.out.println(userName + " munkalapot küldött kirakodásra - transactionID: " + unloading.getTransactionID());
     }
 
     // Szerver teszt

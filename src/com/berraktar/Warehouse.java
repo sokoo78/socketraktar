@@ -254,7 +254,7 @@ public class Warehouse implements Serializable {
         // Van még paletta a kocsin?
         Pallet pallet = worksheet.takePallet();
         if (pallet == null) {
-            unloading.setTransactionMessage("Ezen a számon nincs foglalás a rendszerben!");
+            unloading.setTransactionMessage("Nincs több paletta a kocsin!");
             return unloading;
         }
 
@@ -278,7 +278,7 @@ public class Warehouse implements Serializable {
     }
 
     // Munkalap lezárása (végrehajtva)
-    public synchronized Receiving ConfirmWorkSheet(Receiving receiving) {
+    public synchronized Receiving CompleteWorkSheet(Receiving receiving) {
         Worksheet worksheet = this.worksheets.get(receiving.getTransactionID());
 
         // Visszautasítás: tranzakció azonosító nem létezik
@@ -313,7 +313,7 @@ public class Warehouse implements Serializable {
         // Kipakolás a lokációba
         for (int i = 0; i < reservedLocations.size(); i++){
             Pallet pallet = terminal.takePallet(receiving.getInternalPartNumber());
-            locations.get(i).addPallet(pallet);
+            locations.get(reservedLocations.get(i)).addPallet(pallet);
         }
 
         // Visszaigazolás
@@ -327,6 +327,7 @@ public class Warehouse implements Serializable {
 
         // TODO: Accounting -> Logisztikai művelet lejelentése
 
+        receiving.setCompleted();
         return receiving;
     }
 
@@ -451,7 +452,7 @@ public class Warehouse implements Serializable {
         DateTimeFormatter time = DateTimeFormatter.ofPattern("HH:mm");
 
         // Fejléc
-        reply.append("\nID#\t\tStátusz\t\tBérlő#\tDátum\t\tIdő\t\tPaletta#\tMunka\tTerminál\tLokációk");
+        reply.append("\nID#\t\tStátusz\t\t\tBérlő#\tDátum\t\tIdő\t\tPaletta#\tMunka\tTerminál\tLokációk");
 
         // Munkalapok adatainak kigyűjtése
         for (Map.Entry<Integer, Worksheet> entry : worklist.entrySet()) {

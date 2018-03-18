@@ -1,15 +1,16 @@
 package com.berraktar;
 
 public class Pallet {
+
+    // Paletta tulajdonságai
     private String internalPartNumber;
     private String externalPartNumber;
     private String renterID;
 
-
     // Konstruktorok
-    public Pallet() {}
+    Pallet() {}
 
-    public Pallet(String renterID, String externalPartNumber) {
+    Pallet(String renterID, String externalPartNumber) {
         this.setRenterID(renterID);
         this.setExternalPartNumber(externalPartNumber);
     }
@@ -20,31 +21,31 @@ public class Pallet {
         this.renterID = renterID;
     }
 
-    public Pallet scanPallet(){
+    public synchronized Pallet scanPallet(){
         return this;
     }
 
-    public String getInternalPartNumber() {
+    public synchronized String getInternalPartNumber() {
         return internalPartNumber;
     }
 
-    public void setInternalPartNumber(String internalPartNumber) {
+    public synchronized void setInternalPartNumber(String internalPartNumber) {
         this.internalPartNumber = internalPartNumber;
     }
 
-    public String getExternalPartNumber() {
+    public synchronized String getExternalPartNumber() {
         return externalPartNumber;
     }
 
-    public void setExternalPartNumber(String externalPartNumber) {
+    public synchronized void setExternalPartNumber(String externalPartNumber) {
         this.externalPartNumber = externalPartNumber;
     }
 
-    public String getRenterID() {
+    public synchronized String getRenterID() {
         return renterID;
     }
 
-    public void setRenterID(String renterID) {
+    public synchronized void setRenterID(String renterID) {
         this.renterID = renterID;
     }
 }
