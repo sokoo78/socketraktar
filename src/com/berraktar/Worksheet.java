@@ -10,22 +10,11 @@ public class Worksheet implements Serializable {
     private static final long serialVersionUID = -7149976626711109237L;
 
     // Munkalaptípusok
-    public enum WorkSheetType {Incoming, Outgoing, Invalid}
-    // Incoming: beérkező áru
-    // OutGoing: kimenő áru
-
-    // Tranzakció típusok
-    //public enum TransactionType {Initialize, Approve, Confirm, Cancel}
-    // Initialize: Új munkalap kérése a szervertől          - a szerver transactionID-val tér vissza, a munkalap létrejön
-    // Approve:    Igénylési adatok ellenőrzése a szerveren - a szerver isApproved flaggel tér vissza
-    // Confirm:    Végrehajtás jelzése a szervernek         - a szerver isConfirmed flaggel tér vissza, a munkalap megsemmisül
-    // Cancel:     Törlési igény küldése a szervernek       - a szerver isCancelled flaggel tér vissza, a munkalap megsemmisül
+    public enum WorkSheetType {Incoming, Outgoing}
 
     // Munkalap tulajdonságai
     private int transactionID;                  // Munkalap azonosító - sima futó sorszám
-    //private TransactionType transaction;        // Végrehajtandó művelet
     private final WorkSheetType workSheetType;  // Beszállítás vagy kiszállítás
-    private String transactionMessage;          // Utolsó művelettel kapcsolatos információ (pl hibaüzenet)
 
     // Állapotjelzők
     private boolean isInitialized = false;  // Van már tranzakcióazonosítója
@@ -38,7 +27,7 @@ public class Worksheet implements Serializable {
     private String renterID;                // Bérlő
     private LocalDateTime reservedDate;     // Igényelt időpont
     private LocalDateTime receivedDate;     // Beérkezés időpontja
-    private String externalID;              // Vevői cikkszám
+    private String externalPartNumber;              // Vevői cikkszám
     private boolean isCooled;               // Hűtendő vagy normál
     private int numberOfPallets;            // Paletták száma
 
@@ -103,14 +92,6 @@ public class Worksheet implements Serializable {
         isInitialized = true;
     }
 
-    //public TransactionType getTransaction() {
-    //    return transaction;
-    //}
-
-    //public void setTransaction(TransactionType transaction) {
-    //    this.transaction = transaction;
-    //}
-
     public String getRenterID() {
         return renterID;
     }
@@ -127,12 +108,12 @@ public class Worksheet implements Serializable {
         this.reservedDate = reservedDate;
     }
 
-    public String getExternalID() {
-        return externalID;
+    public String getExternalPartNumber() {
+        return externalPartNumber;
     }
 
-    public void setExternalID(String externalID) {
-        this.externalID = externalID;
+    public void setExternalPartNumber(String externalPartNumber) {
+        this.externalPartNumber = externalPartNumber;
     }
 
     public boolean isCooled() {
@@ -153,14 +134,6 @@ public class Worksheet implements Serializable {
 
     public void setNumberOfPallets(int numberOfPallets) {
         this.numberOfPallets = numberOfPallets;
-    }
-
-    public String getTransactionMessage() {
-        return transactionMessage;
-    }
-
-    public void setTransactionMessage(String transactionMessage) {
-        this.transactionMessage = transactionMessage;
     }
 
     public boolean isConfirmed() {

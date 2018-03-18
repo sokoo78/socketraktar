@@ -208,6 +208,11 @@ public class Warehouse implements Serializable {
         }
     }
 
+    public Receiving ProcessWorkSheet(Receiving receiving) {
+        // TODO: Bérlő, terminál, raklapok, lokációk adatokat összeszedni
+        return receiving;
+    }
+
     // Munkalap lezárása (végrehajtva)
     public synchronized Worksheet ConfirmWorkSheet(Worksheet worksheet) {
         // TODO: Warehouse -> terminál felszabadítása
@@ -329,7 +334,7 @@ public class Warehouse implements Serializable {
         return report;
     }
 
-    // TODO: munkalapok jelentés
+    // Munkalapok jelentés
     public synchronized Report WorksheetReport(Report report) {
         Map<Integer, Worksheet> worklist = this.worksheets;
         StringBuilder reply = new StringBuilder();
@@ -410,8 +415,6 @@ public class Warehouse implements Serializable {
     // Terminál foglalások jelentés - TODO ez még valamiért nem müxik
     public synchronized Report TerminalReport(Report report) {
         StringBuilder reply = new StringBuilder();
-        Map<Integer,Location> normalTerminals = this.normalLocations;
-        Map<Integer,Location> cooledTerminals = this.cooledLocations;
 
         // Fejléc
         reply.append("\nTerminál foglalások\n\n");
@@ -444,10 +447,6 @@ public class Warehouse implements Serializable {
     }
 
     // Getterek, Setterek
-
-    public synchronized Worksheet getWorksheetByID (Integer transactionID){
-        return this.worksheets.get(transactionID);
-    }
 
     public synchronized int getMaxNormalLocation() {
         return this.maxNormalLocation;

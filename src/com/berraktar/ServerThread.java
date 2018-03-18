@@ -101,23 +101,35 @@ class ServerThread extends Thread {
 
     // Új foglalás
     private void doReservation(ObjectOutputStream oos, Reservation reservation, String userName) throws IOException {
+        // Munkalap létrehozása, ha még nincs létrehozva
         if (!reservation.isCreated()) {
             reservation.setTransactionID(warehouse.CreateWorkSheet(reservation.getWorkSheetType()));
             reservation.setCreated();
             oos.writeObject(reservation);
             System.out.println(userName + " új munkalapot hozott létre - transactionID: " + reservation.getTransactionID());
-        } else {
+        }
+        // Foglalás jóváhagyása
+        else {
             reservation = warehouse.ApproveWorkSheet(reservation,accounting);
             oos.writeObject(reservation);
             System.out.println(userName + " munkalapot küldött jóváhagyásra - transactionID: " + reservation.getTransactionID());
         }
 }
 
-    // Munkalap aktiválás
+    // Beérkezés
     private void doReceiving(ObjectOutputStream oos, Receiving receiving, String userName) throws IOException {
-        receiving = warehouse.ActivateWorkSheet(receiving);
-        oos.writeObject(receiving);
-        System.out.println(userName + " munkalapot küldött aktiválásra - transactionID: " + receiving.getTransactionID());
+        // Munkalap aktiválása, ha még nem aktív
+        if (!receiving.isApproved()){
+            receiving = warehouse.ActivateWorkSheet(receiving);
+            oos.writeObject(receiving);
+            System.out.println(userName + " munkalapot küldött aktiválásra - transactionID: " + receiving.getTransactionID());
+        }
+        // Beérkeztetés indítása
+        else {
+            receiving = warehouse.ProcessWorkSheet(receiving);
+            oos.writeObject(receiving);
+            System.out.println(userName + " munkalapot küldött végrehajtásra - transactionID: " + receiving.getTransactionID());
+        }
     }
 
     // Szerver teszt

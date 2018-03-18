@@ -30,20 +30,12 @@ class Receiving implements Serializable {
         return receivingDate;
     }
 
-    public void updateReceivingDate(LocalDateTime receivingDate) {
-        this.receivingDate = receivingDate;
-    }
-
     public boolean isApproved() {
         return isApproved;
     }
 
     public void setApproved() {
         this.isApproved = true;
-    }
-
-    public void updateApproved(boolean isApproved) {
-        this.isApproved = isApproved;
     }
 
     public String getTransactionMessage() {

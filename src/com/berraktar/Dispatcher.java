@@ -60,13 +60,13 @@ public class Dispatcher extends Employee implements Serializable {
         // Beérkezés adatainak bekérése
         System.out.print("Tranzakció azonosító: ");         // Munkalap sorszáma
         int transactionID = Integer.parseInt(br.readLine());
-        System.out.print("Beérkezés időpontja: ");          // TODO: a dátumot teszt célból kell megadni, realtime működés esetén nem kell
+        System.out.print("Beérkezés időpontja: ");          // TODO: a dátumot csak a teszt célból kell megadni, realtime működés esetén LocalDateTime.now() kell ide
         LocalDateTime receivingDate = UserIO.readDate(false);
         Receiving receiving = new Receiving(transactionID, receivingDate);
         oos.writeObject(receiving);
         receiving = (Receiving) ois.readObject();
         if (receiving.isApproved()){
-            System.out.print("Beszállítási adatok elfogadva - munkalap aktiválva!"); // TODO: munkalapot aktiválni
+            System.out.print("Beszállítási adatok elfogadva - munkalap aktiválva!");
         } else {
             System.out.print("Beszállítási adatok elutasítva!");
             System.out.print("\nSzerver üzenete: " + receiving.getTransactionMessage());

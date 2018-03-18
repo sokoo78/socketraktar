@@ -64,7 +64,7 @@ public final class UserIO {
     // Munkalap kitöltése a foglalási adatokkal
     public static Worksheet fillWorkSheet(Worksheet worksheet, Reservation reservation) {
         worksheet.setRenterID(reservation.getRenterID());
-        worksheet.setExternalID(reservation.getPartNumber());
+        worksheet.setExternalPartNumber(reservation.getPartNumber());
         worksheet.updateCooled(reservation.isCooled());
         worksheet.setNumberOfPallets(reservation.getPallets());
         worksheet.setReservedDate(reservation.getReservationDate());
