@@ -28,33 +28,29 @@ public final class SystemTests {
 
         // Sikertelen foglalások
         // 1. Bérlő nem létezik
-        testReservations.add(new Reservation("NUKU", "CIKK75110001", false, 5, LocalDateTime.now().plusDays(1)));
+        testReservations.add(new Reservation("NUKU", "CIKK75110001", false, 5, dateTime.plusDays(1)));
         // 2. Nincs a bérlőnek hűtött lokációja
-        testReservations.add(new Reservation("BEBE", "CIKK75110001", true,  1, LocalDateTime.now().plusDays(1)));
+        testReservations.add(new Reservation("BEBE", "CIKK75110001", true,  1, dateTime.plusDays(1)));
         // 3. Nincs a bérlőnek elég szabad helye
-        testReservations.add(new Reservation("BEBE", "CIKK75110001", false, 501, LocalDateTime.now().plusDays(1)));
+        testReservations.add(new Reservation("BEBE", "CIKK75110001", false, 501, dateTime.plusDays(1)));
         // 4. Nincs a megadott időpontban szabad terminál
         testReservations.add(new Reservation("GAPE", "NORM65110010", true,  1, dateTime));
 
         // Tesztek futtatása
         for (int i = 0; i < testReservations.size(); i++) {
             // Inicializálás
-            Worksheet worksheet = new Worksheet(Worksheet.WorkSheetType.Incoming);
-            worksheet.setTransaction(Worksheet.TransactionType.Initialize);
-            oos.writeObject(worksheet);
-            worksheet = (Worksheet) ois.readObject();
-
-            // Kitöltés
-            Reservation reservation = testReservations.get(i);
-            worksheet = UserIO.fillWorkSheet(worksheet, reservation);
+            Reservation reservation;
+            reservation = testReservations.get(i);
+            reservation.setWorkSheetType(Worksheet.WorkSheetType.Incoming);
+            oos.writeObject(reservation);
+            reservation = (Reservation) ois.readObject();
 
             // Jóváhagyás
-            worksheet.setTransaction(Worksheet.TransactionType.Approve);
-            oos.writeObject(worksheet);
-            worksheet = (Worksheet) ois.readObject();
+            oos.writeObject(reservation);
+            reservation = (Reservation) ois.readObject();
 
             // Tömör kiírás
-            UserIO.printWorksheet(worksheet);
+            UserIO.printReservation(reservation);
         }
     }
 

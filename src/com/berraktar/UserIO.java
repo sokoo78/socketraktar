@@ -63,24 +63,24 @@ public final class UserIO {
 
     // Munkalap kitöltése a foglalási adatokkal
     public static Worksheet fillWorkSheet(Worksheet worksheet, Reservation reservation) {
-        worksheet.setRenterID(reservation.RenterID);
-        worksheet.setExternalID(reservation.PartNumber);
-        worksheet.updateCooled(reservation.IsCooled);
-        worksheet.setNumberOfPallets(reservation.Pallets);
-        worksheet.setReservedDate(reservation.ReservationDate);
+        worksheet.setRenterID(reservation.getRenterID());
+        worksheet.setExternalID(reservation.getPartNumber());
+        worksheet.updateCooled(reservation.isCooled());
+        worksheet.setNumberOfPallets(reservation.getPallets());
+        worksheet.setReservedDate(reservation.getReservationDate());
         return worksheet;
     }
 
-    // Munkalap foglalási adatainak tömör (egy soros) kiíratása
-    public static void printWorksheet(Worksheet worksheet) {
-        System.out.print("\nID: " + worksheet.getTransactionID() + " (" + worksheet.isInitialized() + ")");
-        System.out.print("\tBérlő: " + worksheet.getRenterID());
-        System.out.print("\tCikk: " + worksheet.getExternalID());
-        System.out.print("\tHűtött: " + worksheet.isCooled());
-        System.out.print("\tRaklap: " + worksheet.getNumberOfPallets());
-        System.out.print("\tIdő: " + UserIO.printDate(worksheet.getReservedDate()));
+    // Foglalás adatainak tömör (egy soros) kiíratása
+    public static void printReservation(Reservation reservation) {
+        System.out.print("\nID: " + reservation.getTransactionID() + " (" + reservation.isCreated() + ")");
+        System.out.print("\tBérlő: " + reservation.getRenterID());
+        System.out.print("\tCikk: " + reservation.getPartNumber());
+        System.out.print("\tHűtött: " + reservation.isCooled());
+        System.out.print("\tRaklap: " + reservation.getPallets());
+        System.out.print("\tIdő: " + UserIO.printDate(reservation.getReservationDate()));
         System.out.print("\tFoglalás: ");
-        System.out.print(worksheet.isApproved() ? "OK" : "NOK - " + worksheet.getTransactionMessage());
+        System.out.print(reservation.isApproved() ? "OK" : "NOK - " + reservation.getTransactionMessage());
     }
 
 }

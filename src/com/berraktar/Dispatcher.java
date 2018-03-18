@@ -18,7 +18,7 @@ public class Dispatcher extends Employee implements Serializable {
 
         // Új foglalási kérelem
         Reservation reservation = new Reservation();
-        reservation.WorkSheetType = Worksheet.WorkSheetType.Incoming;
+        reservation.setWorkSheetType(Worksheet.WorkSheetType.Incoming);
 
         // Tranzakciószám kérése a szervertől
         oos.writeObject(reservation);
@@ -28,15 +28,15 @@ public class Dispatcher extends Employee implements Serializable {
 
         // Kérelem adatainak bekérése a munkalapra
         System.out.print("\nVevőkód: ");
-        reservation.RenterID = br.readLine();
+        reservation.setRenterID(br.readLine());
         System.out.print("Cikkszám: ");
-        reservation.PartNumber = br.readLine();
+        reservation.setPartNumber(br.readLine());
         System.out.print("Hűtött áru? (i/n): ");
-        reservation.IsCooled = UserIO.readBoolean();
+        reservation.setCooled(UserIO.readBoolean());
         System.out.print("Raklapok száma: ");
-        reservation.Pallets = Integer.parseInt(br.readLine());
+        reservation.setPallets(Integer.parseInt(br.readLine()));
         System.out.println("Foglalás időpontja (Példa: " + UserIO.printDate(LocalDateTime.now()) + "):");
-        reservation.ReservationDate = UserIO.readDate(true);
+        reservation.setReservationDate(UserIO.readDate(true));
         System.out.print("Idő kerekítve: " + UserIO.printDate(reservation.getReservationDate()));
 
         // Foglalás adatainak ellenőrzése, előfoglalás

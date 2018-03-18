@@ -110,68 +110,72 @@ public class Warehouse implements Serializable {
     }
 
     // Új munkalap létrehozása
-    public synchronized Worksheet CreateWorkSheet(Worksheet.WorkSheetType workSheetType) {
+    public synchronized int CreateWorkSheet(Worksheet.WorkSheetType workSheetType) {
         Integer newID = workCounter.incrementAndGet();
         Worksheet newWorkSheet = new Worksheet(workSheetType);
         newWorkSheet.setTransactionID(newID);
         newWorkSheet.setInitialized();
         worksheets.put(newID, newWorkSheet);
-        return newWorkSheet;
+        return newID;
     }
 
     // Munkalap adatainak ellenőrzése, előfoglalás
-    public synchronized Worksheet ApproveWorkSheet(Worksheet worksheet, Accounting accounting) {
+    public synchronized Reservation ApproveWorkSheet(Reservation reservation, Accounting accounting) {
 
         // Bérlő létezésének ellenőrzése
-        Renter renter = accounting.getRenter(worksheet.getRenterID());
+        Renter renter = accounting.getRenter(reservation.getRenterID());
         if (renter == null) {
-            worksheet.setTransactionMessage("A megadott bérlő azonosító nem létezik: " + worksheet.getRenterID());
-            return worksheet;
+            reservation.setTransactionMessage("A megadott bérlő azonosító nem létezik: " + reservation.getRenterID());
+            return reservation;
         }
 
         // Bérlő szabad kapacitásának ellenőrzése, előfoglalás
-        if (!renter.decreaseFreeSpace(worksheet.isCooled(),worksheet.getNumberOfPallets())){
-            worksheet.setTransactionMessage("A megadott bérlőnek nincs elég szabad helye: " + renter.getFreeLocations(worksheet.isCooled()));
-            return worksheet;
+        if (!renter.decreaseFreeSpace(reservation.isCooled(),reservation.getPallets())){
+            reservation.setTransactionMessage("A megadott bérlőnek nincs elég szabad helye: " + renter.getFreeLocations(reservation.isCooled()));
+            return reservation;
         }
 
         // Dátum ellenőrzése
-        if (worksheet.getReservedDate().isBefore(LocalDateTime.now())){
-            worksheet.setTransactionMessage("A foglalás időpontja már elmúlt");
-            return worksheet;
+        if (reservation.getReservationDate().isBefore(LocalDateTime.now())){
+            reservation.setTransactionMessage("A foglalás időpontja már elmúlt");
+            return reservation;
         }
 
+        Worksheet worksheet = this.worksheets.get(reservation.getTransactionID());
+
         // Terminál szabad kapacitás ellenőrzése, előfoglalás
-        int reservedTerminal = reserveTerminal(worksheet.isCooled(), worksheet.getReservedDate());
+        int reservedTerminal = reserveTerminal(reservation.isCooled(), reservation.getReservationDate());
         if (reservedTerminal != 0) {
             worksheet.setTerminalID(reservedTerminal);
         } else {
-            worksheet.setTransactionMessage("A megadott időpontban nincs szabad terminál");
-            return worksheet;
+            reservation.setTransactionMessage("A megadott időpontban nincs szabad terminál");
+            return reservation;
         }
 
         // Raktár szabad kapacitásának ellenőrzése, előfoglalás
-        List<Integer> reservedLocations = reserveLocations(worksheet.isCooled(), worksheet.getNumberOfPallets(), worksheet.getRenterID());
+        List<Integer> reservedLocations = reserveLocations(reservation.isCooled(), reservation.getPallets(), reservation.getRenterID());
         if (reservedLocations != null) {
             worksheet.setLocations(reservedLocations);
         } else {
-            worksheet.setTransactionMessage("Nincs elég szabad lokáció a raktárban");
-            return worksheet;
+            reservation.setTransactionMessage("Nincs elég szabad lokáció a raktárban");
+            return reservation;
         }
 
         // Munkalap jóváhagyása, vagy elutasítása - TODO diszpécser még visszadobhatja
 
         // Munkalap jóváhagyása
+        reservation.setApproved();
+        UserIO.fillWorkSheet(worksheet,reservation);
         worksheet.setApproved();
-        this.worksheets.put(worksheet.getTransactionID(),worksheet);
 
         // Logisztikai művelet lejelentése
         accounting.addLogisticsOperations(renter.getCode(),1);
 
+        // Állapot mentése
         saveWarehouseState();
 
         // Minden OK, mehet a visszaigazolás
-        return worksheet;
+        return reservation;
     }
 
     // Munkalap aktiválása

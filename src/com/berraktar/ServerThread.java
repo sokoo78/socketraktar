@@ -52,7 +52,7 @@ class ServerThread extends Thread {
 
                 // ServerTest típusú üzenet feldolgozása
                 if (object instanceof ServerTest) {
-                    doTest(objectOutputStream, (ServerTest)object, employee.getName());
+                    doServerTest(objectOutputStream, (ServerTest)object, employee.getName());
                 }
 
                 // Report típusú üzenet feldolgozása
@@ -60,7 +60,6 @@ class ServerThread extends Thread {
                     doReport(objectOutputStream, (Report)object, employee.getName());
                 }
             }
-            // TODO: További beérkező objektumok feldolgozása
 
             // Zárjuk a kapcsolatot
             socket.close();
@@ -94,11 +93,14 @@ class ServerThread extends Thread {
     // Új foglalás
     private void doReservation(ObjectOutputStream oos, Reservation reservation, String userName) throws IOException {
         if (!reservation.isCreated()) {
-            Worksheet worksheet = warehouse.CreateWorkSheet(reservation.getWorkSheetType());
-            oos.writeObject(worksheet);
-            System.out.println(userName + " új munkalapot hozott létre - transactionID: " + worksheet.getTransactionID());
+            reservation.setTransactionID(warehouse.CreateWorkSheet(reservation.getWorkSheetType()));
+            reservation.setCreated();
+            oos.writeObject(reservation);
+            System.out.println(userName + " új munkalapot hozott létre - transactionID: " + reservation.getTransactionID());
         } else {
-
+            reservation = warehouse.ApproveWorkSheet(reservation,accounting);
+            oos.writeObject(reservation);
+            System.out.println(userName + " munkalapot küldött jóváhagyásra - transactionID: " + reservation.getTransactionID());
         }
 }
 
@@ -109,8 +111,8 @@ class ServerThread extends Thread {
         System.out.println(userName + " munkalapot küldött aktiválásra - transactionID: " + receiving.getTransactionID());
     }
 
-    // Teszt metódus
-    private void doTest(ObjectOutputStream oos, ServerTest serverTest, String userName) throws IOException {
+    // Szerver teszt
+    private void doServerTest(ObjectOutputStream oos, ServerTest serverTest, String userName) throws IOException {
         // Összeszorozzuk a két számot amit kaptunk az objektumban
         serverTest.setResult(serverTest.getFirstNumber() * serverTest.getSecondNumber());
         System.out.println("DoTest metódust hívta: " + userName);
