@@ -48,6 +48,7 @@ public class Warehouse implements Serializable {
         this.freeNormalTerminal = this.maxNormalTerminal;
         this.freeCooledTerminal = this.maxCooledTerminal;
         loadWarehouseState();
+        updateTerminalReservations();
     }
 
     // Adatok betöltése
@@ -82,15 +83,15 @@ public class Warehouse implements Serializable {
             }
         }
 
-        // Mentett normál terminál foglalások betöltése
-        if (new File("ReservedNormalTerminals.ser").exists()) {
-            this.reservedNormalTerminals = (ConcurrentHashMap<LocalDateTime,List<Integer>>) Persistency.LoadObject("NormalTerminals.ser");
-        }
-
-        // Mentett hűtött terminál foglalások betöltése
-        if (new File("ReservedCooledTerminals.ser").exists()) {
-            this.reservedCooledTerminals = (ConcurrentHashMap<LocalDateTime,List<Integer>>) Persistency.LoadObject("CooledTerminals.ser");
-        }
+//        // Mentett normál terminál foglalások betöltése - TODO ez valamiért nem müxik
+//        if (new File("ReservedNormalTerminals.ser").exists()) {
+//            this.reservedNormalTerminals = (ConcurrentHashMap<LocalDateTime,List<Integer>>) Persistency.LoadObject("NormalTerminals.ser");
+//        }
+//
+//        // Mentett hűtött terminál foglalások betöltése
+//        if (new File("ReservedCooledTerminals.ser").exists()) {
+//            this.reservedCooledTerminals = (ConcurrentHashMap<LocalDateTime,List<Integer>>) Persistency.LoadObject("CooledTerminals.ser");
+//        }
 
         // Mentett normál lokációk betöltése
         if (new File("NormalLocations.ser").exists()) {
@@ -119,8 +120,8 @@ public class Warehouse implements Serializable {
         Persistency.SaveObject(this.normalLocations, "NormalLocations.ser");
         Persistency.SaveObject(this.cooledTerminals, "CooledTerminals.ser");
         Persistency.SaveObject(this.normalTerminals, "NormalTerminals.ser");
-        Persistency.SaveObject(this.reservedCooledTerminals, "ReservedCooledTerminals.ser");
-        Persistency.SaveObject(this.reservedNormalTerminals, "ReservedNormalTerminals.ser");
+        //Persistency.SaveObject(this.reservedCooledTerminals, "ReservedCooledTerminals.ser");
+        //Persistency.SaveObject(this.reservedNormalTerminals, "ReservedNormalTerminals.ser");
     }
 
     // Új munkalap létrehozása
@@ -606,6 +607,35 @@ public class Warehouse implements Serializable {
 
     public synchronized void decreaseFreeNormalLocations(int byAmount){
         this.freeNormalLocation -= byAmount;
+    }
+
+    // TODO: Terminál foglalások nem jól mentődnek, ez befrissíti a listákat amíg nincs meg a bug
+    public synchronized void updateTerminalReservations() {
+        Map<Integer, Worksheet> worklist = this.worksheets;
+
+        // Munkalapok adatainak kigyűjtése
+        for (Map.Entry<Integer, Worksheet> entry : worklist.entrySet()) {
+            Worksheet value = entry.getValue();
+            if (value.isApproved() || value.isActive()) {
+                if (value.isCooled()) {
+                    if ( this.reservedCooledTerminals.get(value.getReservedDate()) == null ){
+                        List<Integer> reserveList = new ArrayList<>();
+                        this.reservedCooledTerminals.put(value.getReservedDate(), reserveList);
+                        this.reservedCooledTerminals.get(value.getReservedDate()).add(value.getTerminalID());
+                    } else {
+                        this.reservedCooledTerminals.get(value.getReservedDate()).add(value.getTerminalID());
+                    }
+                } else {
+                    if ( this.reservedNormalTerminals.get(value.getReservedDate()) == null ){
+                        List<Integer> reserveList = new ArrayList<>();
+                        this.reservedNormalTerminals.put(value.getReservedDate(), reserveList);
+                        this.reservedNormalTerminals.get(value.getReservedDate()).add(value.getTerminalID());
+                    } else {
+                        this.reservedNormalTerminals.get(value.getReservedDate()).add(value.getTerminalID());
+                    }
+                }
+            }
+        }
     }
 
 }
