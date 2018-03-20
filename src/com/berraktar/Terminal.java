@@ -18,7 +18,6 @@ public class Terminal implements Serializable {
         this.id = id;
     }
 
-
     // Műveletek
 
     public Pallet takePallet(String palletID){

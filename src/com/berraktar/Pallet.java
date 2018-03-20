@@ -1,7 +1,10 @@
 package com.berraktar;
 
-public class Pallet {
+import java.io.Serializable;
 
+public class Pallet implements Serializable {
+    // Szerializációhoz kell
+    private static final long serialVersionUID = 9177749989045794424L;
     // Paletta tulajdonságai
     private String internalPartNumber;
     private String externalPartNumber;

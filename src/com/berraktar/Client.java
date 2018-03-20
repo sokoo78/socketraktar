@@ -148,7 +148,7 @@ public class Client {
                     "5. Kilépés\n" +
                     "Válassz menüpontot: ");
             String input = br.readLine();
-            while(!input.equals("4")){
+            while(!input.equals("5")){
                 switch(input){
                     case "1":
                         SystemTests.doNewReservationTest(oos, ois);

@@ -82,6 +82,16 @@ public class Warehouse implements Serializable {
             }
         }
 
+        // Mentett normál terminál foglalások betöltése
+        if (new File("ReservedNormalTerminals.ser").exists()) {
+            this.reservedNormalTerminals = (ConcurrentHashMap<LocalDateTime,List<Integer>>) Persistency.LoadObject("NormalTerminals.ser");
+        }
+
+        // Mentett hűtött terminál foglalások betöltése
+        if (new File("ReservedCooledTerminals.ser").exists()) {
+            this.reservedCooledTerminals = (ConcurrentHashMap<LocalDateTime,List<Integer>>) Persistency.LoadObject("CooledTerminals.ser");
+        }
+
         // Mentett normál lokációk betöltése
         if (new File("NormalLocations.ser").exists()) {
             this.normalLocations = (ConcurrentHashMap<Integer,Location>) Persistency.LoadObject("NormalLocations.ser");
@@ -107,6 +117,10 @@ public class Warehouse implements Serializable {
         Persistency.SaveObject(this.workCounter, "WorkCounter.ser");
         Persistency.SaveObject(this.cooledLocations, "CooledLocations.ser");
         Persistency.SaveObject(this.normalLocations, "NormalLocations.ser");
+        Persistency.SaveObject(this.cooledTerminals, "CooledTerminals.ser");
+        Persistency.SaveObject(this.normalTerminals, "NormalTerminals.ser");
+        Persistency.SaveObject(this.reservedCooledTerminals, "ReservedCooledTerminals.ser");
+        Persistency.SaveObject(this.reservedNormalTerminals, "ReservedNormalTerminals.ser");
     }
 
     // Új munkalap létrehozása
@@ -168,11 +182,11 @@ public class Warehouse implements Serializable {
         UserIO.fillWorkSheet(worksheet,reservation);
         worksheet.setApproved();
 
+        // Logisztikai művelet lejelentése
+        accounting.addLogisticsOperations(renter.getCode(),1);
+
         // Állapot mentése
         saveWarehouseState();
-
-        // Logisztikai művelet lejelentése - TODO ezt inkább a munkalapon kellene vezetni, és csak megszűnéskor riportálni (confirmed vagy cancel esetén)
-        accounting.addLogisticsOperations(renter.getCode(),1);
 
         // Minden OK, mehet a visszaigazolás
         return reservation;
@@ -278,7 +292,7 @@ public class Warehouse implements Serializable {
     }
 
     // Munkalap lezárása (végrehajtva)
-    public synchronized Receiving CompleteWorkSheet(Receiving receiving) {
+    public synchronized Receiving CompleteWorkSheet(Receiving receiving, Accounting accounting) {
         Worksheet worksheet = this.worksheets.get(receiving.getTransactionID());
 
         // Visszautasítás: tranzakció azonosító nem létezik
@@ -321,6 +335,9 @@ public class Warehouse implements Serializable {
 
         // Terminál felszabadítása
         terminal.setFree();
+
+        // Logisztikai művelet lejelentése
+        accounting.addLogisticsOperations(receiving.getRenterID(),1);
 
         // Állapot mentése
         saveWarehouseState();
@@ -381,7 +398,7 @@ public class Warehouse implements Serializable {
         }
 
         for (int i = 1; i < maxLocations; i++) {
-            if (locations.get(i).isReserved() == false){
+            if (!locations.get(i).isReserved()){
                 return i;
             }
         }
@@ -497,11 +514,11 @@ public class Warehouse implements Serializable {
 
         // Lokáció részletek
         reply.append("\nFoglalt normál lokációk listája\n");
-        reply.append("\nLocID#\tRenterID\tInternalID\tExternalID");
+        reply.append("\nLocID#\tRenterID\tInternalID\t\t\tExternalID");
         getLocationList(reply, normalLocations);
 
         reply.append("\n\nFoglalt hűtött lokációk listája\n");
-        reply.append("\nLocID#\tRenterID\tInternalID\tExternalID");
+        reply.append("\nLocID#\tRenterID\tInternalID\t\t\tExternalID");
         getLocationList(reply, cooledLocations);
 
         // Válasz mentése a jelentésbe
@@ -537,11 +554,11 @@ public class Warehouse implements Serializable {
 
         // Terminál részletek
         reply.append("\nNormál terminál foglalások listája\n");
-        reply.append("\nDátum\t\t\tTerminálok");
+        reply.append("\nDátum\t\t\t\tTerminálok");
         getTerminalList(reply, reservedNormalTerminals);
 
         reply.append("\n\nHűtött terminál foglalások listája\n");
-        reply.append("\nDátum\t\t\tTerminálok");
+        reply.append("\nDátum\t\t\t\tTerminálok");
         getTerminalList(reply, reservedCooledTerminals);
 
         // Válasz mentése a jelentésbe
@@ -551,8 +568,9 @@ public class Warehouse implements Serializable {
 
     private void getTerminalList(StringBuilder reply, ConcurrentHashMap<LocalDateTime, List<Integer>> terminals) {
         for (Map.Entry<LocalDateTime, List<Integer>> entry : terminals.entrySet()) {
-            reply.append("\n").append(entry.getKey()).append("\t\t").append(entry.getValue());
-            System.out.println(reply);
+            if (entry != null) {
+                reply.append("\n").append(entry.getKey()).append("\t\t").append(entry.getValue());
+            }
         }
     }
 

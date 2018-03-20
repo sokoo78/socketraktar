@@ -115,7 +115,7 @@ class ServerThread extends Thread {
         }
         // Foglalás jóváhagyása
         else {
-            reservation = warehouse.ApproveWorkSheet(reservation,accounting);
+            reservation = warehouse.ApproveWorkSheet(reservation, accounting);
             oos.writeObject(reservation);
             System.out.println(userName + " munkalapot küldött jóváhagyásra - transactionID: " + reservation.getTransactionID());
         }
@@ -136,7 +136,7 @@ class ServerThread extends Thread {
             System.out.println(userName + " munkalapot küldött végrehajtásra - transactionID: " + receiving.getTransactionID());
         } else {
         // Beérkezés visszaigazolása, és lezárása
-            receiving = warehouse.CompleteWorkSheet(receiving);
+            receiving = warehouse.CompleteWorkSheet(receiving, accounting);
             oos.writeObject(receiving);
             System.out.println(userName + " munkalapot küldött lezárásra - transactionID: " + receiving.getTransactionID());
         }

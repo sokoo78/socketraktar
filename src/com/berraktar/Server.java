@@ -7,8 +7,8 @@ import java.net.Socket;
 public class Server {
 
     public static final int PORT = 4445;
-    public Warehouse warehouse = new Warehouse(3000, 800, 9, 3);
-    public Accounting accounting = new Accounting();
+    private Warehouse warehouse = new Warehouse(3000, 800, 9, 3);
+    private Accounting accounting = new Accounting();
 
     public static void main(String[] args) throws IOException {
         new Server().runServer();

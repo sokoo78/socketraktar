@@ -54,8 +54,7 @@ class Accounting implements Serializable {
     }
 
     public synchronized Renter getRenter(String renterID){
-        Renter renter = this.renters.get(renterID);
-        return renter;
+        return this.renters.get(renterID);
     }
 
     public synchronized Map<String, Renter> getRenters() {

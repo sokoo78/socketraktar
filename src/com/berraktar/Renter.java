@@ -96,10 +96,7 @@ public class Renter implements Serializable {
     }
 
     public int getFreeLocations(boolean isCooled){
-        if (isCooled){
-            return this.freeCooledLocations;
-        }
-        return this.freeNormalLocations;
+        return isCooled ? this.freeCooledLocations : this.freeNormalLocations;
     }
 
     public String getName() {
@@ -118,4 +115,11 @@ public class Renter implements Serializable {
         this.code = code;
     }
 
+    public int getNumberOfLogisticsOperations() {
+        return numberOfLogisticsOperations;
+    }
+
+    public void setNumberOfLogisticsOperations(int numberOfLogisticsOperations) {
+        this.numberOfLogisticsOperations = numberOfLogisticsOperations;
+    }
 }
