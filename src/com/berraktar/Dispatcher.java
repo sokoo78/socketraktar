@@ -17,38 +17,38 @@ public class Dispatcher extends Employee implements Serializable {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
         // Új foglalási kérelem
-        Reservation reservation = new Reservation();
-        reservation.setWorkSheetType(Worksheet.WorkSheetType.Incoming);
+        ReservationMessage reservationMessage = new ReservationMessage();
+        reservationMessage.setWorkSheetType(Worksheet.WorkSheetType.Incoming);
 
         // Tranzakciószám kérése a szervertől
-        oos.writeObject(reservation);
-        reservation = (Reservation) ois.readObject();
+        oos.writeObject(reservationMessage);
+        reservationMessage = (ReservationMessage) ois.readObject();
         System.out.print("\nÚj munkalap létrehozva - Tranzakcióazonosító: " +
-                reservation.getTransactionID() + " (isInitialized: " + reservation.isCreated() + ")");
+                reservationMessage.getTransactionID() + " (isInitialized: " + reservationMessage.isCreated() + ")");
 
         // Kérelem adatainak bekérése a munkalapra
         System.out.print("\nVevőkód: ");
-        reservation.setRenterID(br.readLine());
+        reservationMessage.setRenterID(br.readLine());
         System.out.print("Cikkszám: ");
-        reservation.setPartNumber(br.readLine());
+        reservationMessage.setPartNumber(br.readLine());
         System.out.print("Hűtött áru? (i/n): ");
-        reservation.setCooled(UserIO.readBoolean());
+        reservationMessage.setCooled(UserIO.readBoolean());
         System.out.print("Raklapok száma: ");
-        reservation.setPallets(Integer.parseInt(br.readLine()));
+        reservationMessage.setPallets(Integer.parseInt(br.readLine()));
         System.out.println("Foglalás időpontja (Példa: " + UserIO.printDate(LocalDateTime.now()) + "):");
-        reservation.setReservationDate(UserIO.readDate(true));
-        System.out.print("Idő kerekítve: " + UserIO.printDate(reservation.getReservationDate()));
+        reservationMessage.setReservationDate(UserIO.readDate(true));
+        System.out.print("Idő kerekítve: " + UserIO.printDate(reservationMessage.getReservationDate()));
 
         // Foglalás adatainak ellenőrzése, előfoglalás
         System.out.print("\nFoglalási adatok ellenőrzése.. ");
-        oos.writeObject(reservation);
-        reservation = (Reservation) ois.readObject();
-        if (reservation.isApproved()) {
+        oos.writeObject(reservationMessage);
+        reservationMessage = (ReservationMessage) ois.readObject();
+        if (reservationMessage.isApproved()) {
             System.out.print("Foglalási adatok elfogadva!");
         }
         else {
             System.out.print("Foglalási adatok elutasítva!");
-            System.out.print("\nSzerver üzenete: " + reservation.getTransactionMessage());
+            System.out.print("\nSzerver üzenete: " + reservationMessage.getTransactionMessage());
         }
 
         // TODO: Foglalás jóváhagyása, vagy törlése
@@ -62,14 +62,14 @@ public class Dispatcher extends Employee implements Serializable {
         int transactionID = Integer.parseInt(br.readLine());
         System.out.print("Beérkezés időpontja: ");          // TODO: a dátumot csak a teszt célból kell megadni, realtime működés esetén LocalDateTime.now() kell ide
         LocalDateTime receivingDate = UserIO.readDate(false);
-        Receiving receiving = new Receiving(transactionID, receivingDate);
-        oos.writeObject(receiving);
-        receiving = (Receiving) ois.readObject();
-        if (receiving.isApproved()){
+        ReceivingMessage receivingMessage = new ReceivingMessage(transactionID, receivingDate);
+        oos.writeObject(receivingMessage);
+        receivingMessage = (ReceivingMessage) ois.readObject();
+        if (receivingMessage.isApproved()){
             System.out.print("Beszállítási adatok elfogadva - munkalap aktiválva!");
         } else {
             System.out.print("Beszállítási adatok elutasítva!");
-            System.out.print("\nSzerver üzenete: " + receiving.getTransactionMessage());
+            System.out.print("\nSzerver üzenete: " + receivingMessage.getTransactionMessage());
         }
     }
 

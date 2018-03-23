@@ -3,7 +3,7 @@ package com.berraktar;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-class Reservation implements Serializable {
+class ReservationMessage implements Serializable {
 
     // Szerializáláshoz kell
     private static final long serialVersionUID = -3464794718903762978L;
@@ -23,9 +23,9 @@ class Reservation implements Serializable {
     private boolean isApproved = false;
 
     // Konstruktorok
-    Reservation() {}
+    ReservationMessage() {}
 
-    Reservation(String renterID, String partNumber, boolean isCooled, int pallets, LocalDateTime reservationDate){
+    ReservationMessage(String renterID, String partNumber, boolean isCooled, int pallets, LocalDateTime reservationDate){
         this.RenterID = renterID;
         this.PartNumber = partNumber;
         this.IsCooled = isCooled;

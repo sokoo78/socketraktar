@@ -135,52 +135,52 @@ public class Warehouse implements Serializable {
     }
 
     // Munkalap adatainak ellenőrzése, előfoglalás
-    public synchronized Reservation ApproveWorkSheet(Reservation reservation, Accounting accounting) {
+    public synchronized ReservationMessage ApproveWorkSheet(ReservationMessage reservationMessage, Accounting accounting) {
 
         // Elutasítás: bérlő nem létezik
-        Renter renter = accounting.getRenter(reservation.getRenterID());
+        Renter renter = accounting.getRenter(reservationMessage.getRenterID());
         if (renter == null) {
-            reservation.setTransactionMessage("A megadott bérlő azonosító nem létezik: " + reservation.getRenterID());
-            return reservation;
+            reservationMessage.setTransactionMessage("A megadott bérlő azonosító nem létezik: " + reservationMessage.getRenterID());
+            return reservationMessage;
         }
 
         // Elutasítás: bérlőnek nincs elég szabad helye
-        if (!renter.decreaseFreeSpace(reservation.isCooled(),reservation.getPallets())){
-            reservation.setTransactionMessage("A megadott bérlőnek nincs elég szabad helye: " + renter.getFreeLocations(reservation.isCooled()));
-            return reservation;
+        if (!renter.decreaseFreeSpace(reservationMessage.isCooled(), reservationMessage.getPallets())){
+            reservationMessage.setTransactionMessage("A megadott bérlőnek nincs elég szabad helye: " + renter.getFreeLocations(reservationMessage.isCooled()));
+            return reservationMessage;
         }
 
         // Elutasítás: elkésett a szállítmány
-        if (reservation.getReservationDate().isBefore(LocalDateTime.now())){
-            reservation.setTransactionMessage("A foglalás időpontja már elmúlt");
-            return reservation;
+        if (reservationMessage.getReservationDate().isBefore(LocalDateTime.now())){
+            reservationMessage.setTransactionMessage("A foglalás időpontja már elmúlt");
+            return reservationMessage;
         }
 
-        Worksheet worksheet = this.worksheets.get(reservation.getTransactionID());
+        Worksheet worksheet = this.worksheets.get(reservationMessage.getTransactionID());
 
         // Terminál szabad kapacitás ellenőrzése, előfoglalás
-        int reservedTerminal = reserveTerminal(reservation.isCooled(), reservation.getReservationDate());
+        int reservedTerminal = reserveTerminal(reservationMessage.isCooled(), reservationMessage.getReservationDate());
         if (reservedTerminal != 0) {
             worksheet.setTerminalID(reservedTerminal);
         } else {
-            reservation.setTransactionMessage("A megadott időpontban nincs szabad terminál");
-            return reservation;
+            reservationMessage.setTransactionMessage("A megadott időpontban nincs szabad terminál");
+            return reservationMessage;
         }
 
         // Raktár szabad kapacitásának ellenőrzése, előfoglalás
-        List<Integer> reservedLocations = reserveLocations(reservation.isCooled(), reservation.getPallets(), reservation.getRenterID());
+        List<Integer> reservedLocations = reserveLocations(reservationMessage.isCooled(), reservationMessage.getPallets(), reservationMessage.getRenterID());
         if (reservedLocations != null) {
             worksheet.setLocations(reservedLocations);
         } else {
-            reservation.setTransactionMessage("Nincs elég szabad lokáció a raktárban");
-            return reservation;
+            reservationMessage.setTransactionMessage("Nincs elég szabad lokáció a raktárban");
+            return reservationMessage;
         }
 
         // Munkalap jóváhagyása, vagy elutasítása - TODO diszpécser még visszadobhatja
 
         // Munkalap jóváhagyása
-        reservation.setApproved();
-        UserIO.fillWorkSheet(worksheet,reservation);
+        reservationMessage.setApproved();
+        UserIO.fillWorkSheet(worksheet, reservationMessage);
         worksheet.setApproved();
 
         // Logisztikai művelet lejelentése
@@ -190,32 +190,32 @@ public class Warehouse implements Serializable {
         saveWarehouseState();
 
         // Minden OK, mehet a visszaigazolás
-        return reservation;
+        return reservationMessage;
     }
 
     // Munkalap aktiválása
-    public synchronized Receiving ActivateWorkSheet(Receiving receiving) {
-        Worksheet worksheet = this.worksheets.get(receiving.getTransactionID());
+    public synchronized ReceivingMessage ActivateWorkSheet(ReceivingMessage receivingMessage) {
+        Worksheet worksheet = this.worksheets.get(receivingMessage.getTransactionID());
 
         // Elutasítás: Nem létezik a munkalap
         if (worksheet == null){
-            receiving.setTransactionMessage("Ezen a számon nincs foglalás a rendszerben!");
-            return receiving;
+            receivingMessage.setTransactionMessage("Ezen a számon nincs foglalás a rendszerben!");
+            return receivingMessage;
         }
 
         // Elutasítás: Már aktiválva van
         if (worksheet.isActive()) {
-            receiving.setTransactionMessage("Ez a munkalap már aktív!");
-            return receiving;
+            receivingMessage.setTransactionMessage("Ez a munkalap már aktív!");
+            return receivingMessage;
         }
 
         // Elutasítás: nem megfelelő érkezési dátum
-        if (!UserIO.DateisInRange(worksheet.getReservedDate(), worksheet.getReservedDate().plusMinutes(30),receiving.getReceivingDate())) {
-            receiving.setTransactionMessage("Nem megfelelő érkezési dátum: " +
+        if (!UserIO.DateisInRange(worksheet.getReservedDate(), worksheet.getReservedDate().plusMinutes(30), receivingMessage.getReceivingDate())) {
+            receivingMessage.setTransactionMessage("Nem megfelelő érkezési dátum: " +
                     UserIO.printDate(worksheet.getReservedDate()) + "-" +
                     worksheet.getReservedDate().getHour() + ":" + worksheet.getReservedDate().plusMinutes(30).getMinute() +
-                    " helyett " + UserIO.printDate(receiving.getReceivingDate()));
-            return receiving;
+                    " helyett " + UserIO.printDate(receivingMessage.getReceivingDate()));
+            return receivingMessage;
         }
 
         // Jóváhagyás
@@ -225,25 +225,25 @@ public class Warehouse implements Serializable {
         saveWarehouseState();
 
         // Visszaigazolás
-        receiving.setApproved();
-        return receiving;
+        receivingMessage.setApproved();
+        return receivingMessage;
     }
 
     // Munkalap végrehajtásának indítása
-    public synchronized Receiving ProcessWorkSheet(Receiving receiving) {
-        Worksheet worksheet = this.worksheets.get(receiving.getTransactionID());
+    public synchronized ReceivingMessage ProcessWorkSheet(ReceivingMessage receivingMessage) {
+        Worksheet worksheet = this.worksheets.get(receivingMessage.getTransactionID());
 
         // Létezik a munkalap?
         if (worksheet == null) {
-            receiving.setTransactionMessage("Ezen a számon nincs foglalás a rendszerben!");
-            return receiving;
+            receivingMessage.setTransactionMessage("Ezen a számon nincs foglalás a rendszerben!");
+            return receivingMessage;
         }
 
         // Beérkeztetéshez szükséges adatok kitöltése
-        receiving.setRenterID(worksheet.getRenterID());
-        receiving.setPallets(worksheet.getNumberOfPallets());
-        receiving.setExternalPartNumber(worksheet.getExternalPartNumber());
-        receiving.setTerminalID(worksheet.getTerminalID());
+        receivingMessage.setRenterID(worksheet.getRenterID());
+        receivingMessage.setPallets(worksheet.getNumberOfPallets());
+        receivingMessage.setExternalPartNumber(worksheet.getExternalPartNumber());
+        receivingMessage.setTerminalID(worksheet.getTerminalID());
 
         // Jóváhagyás
         worksheet.setProcessing();
@@ -252,25 +252,25 @@ public class Warehouse implements Serializable {
         saveWarehouseState();
 
         // Visszaigazolás
-        receiving.setProcessing();
-        return receiving;
+        receivingMessage.setProcessing();
+        return receivingMessage;
     }
 
     // Egy raklap kirakása a terminálra
-    public synchronized Unloading UnloadWorkSheet(Unloading unloading) {
-        Worksheet worksheet = this.worksheets.get(unloading.getTransactionID());
+    public synchronized UnloadingMessage UnloadWorkSheet(UnloadingMessage unloadingMessage) {
+        Worksheet worksheet = this.worksheets.get(unloadingMessage.getTransactionID());
 
         // Létezik a munkalap?
         if (worksheet == null) {
-            unloading.setTransactionMessage("Ezen a számon nincs foglalás a rendszerben!");
-            return unloading;
+            unloadingMessage.setTransactionMessage("Ezen a számon nincs foglalás a rendszerben!");
+            return unloadingMessage;
         }
 
         // Van még paletta a kocsin?
         Pallet pallet = worksheet.takePallet();
         if (pallet == null) {
-            unloading.setTransactionMessage("Nincs több paletta a kocsin!");
-            return unloading;
+            unloadingMessage.setTransactionMessage("Nincs több paletta a kocsin!");
+            return unloadingMessage;
         }
 
         // Kipakolás a terminálra
@@ -280,7 +280,7 @@ public class Warehouse implements Serializable {
         } else {
             terminal = this.normalTerminals.get(worksheet.getTerminalID());
         }
-        pallet.setInternalPartNumber(unloading.getInternalPartNumber());
+        pallet.setInternalPartNumber(unloadingMessage.getInternalPartNumber());
         terminal.addPallet(pallet);
         terminal.setOccupied();
 
@@ -288,18 +288,18 @@ public class Warehouse implements Serializable {
         saveWarehouseState();
 
         // Visszaigazolás
-        unloading.setConfirmed();
-        return unloading;
+        unloadingMessage.setConfirmed();
+        return unloadingMessage;
     }
 
     // Munkalap lezárása (végrehajtva)
-    public synchronized Receiving CompleteWorkSheet(Receiving receiving, Accounting accounting) {
-        Worksheet worksheet = this.worksheets.get(receiving.getTransactionID());
+    public synchronized ReceivingMessage CompleteWorkSheet(ReceivingMessage receivingMessage, Accounting accounting) {
+        Worksheet worksheet = this.worksheets.get(receivingMessage.getTransactionID());
 
         // Visszautasítás: tranzakció azonosító nem létezik
         if (worksheet == null) {
-            receiving.setTransactionMessage("Ezen a számon nincs foglalás a rendszerben!");
-            return receiving;
+            receivingMessage.setTransactionMessage("Ezen a számon nincs foglalás a rendszerben!");
+            return receivingMessage;
         }
 
         ConcurrentHashMap<Integer,Location> locations;
@@ -321,13 +321,13 @@ public class Warehouse implements Serializable {
 
         // Visszautasítás: palettaszám nem egyezik a foglalt lokációk számával
         if (palletList.size() != reservedLocations.size()) {
-            receiving.setTransactionMessage("Palettaszám nem egyezik a foglalt lokációk számával!");
-            return receiving;
+            receivingMessage.setTransactionMessage("Palettaszám nem egyezik a foglalt lokációk számával!");
+            return receivingMessage;
         }
 
         // Kipakolás a lokációba
         for (int i = 0; i < reservedLocations.size(); i++){
-            Pallet pallet = terminal.takePallet(receiving.getInternalPartNumber());
+            Pallet pallet = terminal.takePallet(receivingMessage.getInternalPartNumber());
             locations.get(reservedLocations.get(i)).addPallet(pallet);
         }
 
@@ -338,24 +338,24 @@ public class Warehouse implements Serializable {
         terminal.setFree();
 
         // Logisztikai művelet lejelentése
-        accounting.addLogisticsOperations(receiving.getRenterID(),1);
+        accounting.addLogisticsOperations(receivingMessage.getRenterID(),1);
 
         // Állapot mentése
         saveWarehouseState();
 
         // TODO: Accounting -> Logisztikai művelet lejelentése
 
-        receiving.setCompleted();
-        return receiving;
+        receivingMessage.setCompleted();
+        return receivingMessage;
     }
 
-    public synchronized Receiving CancelWorkSheet(Receiving receiving) {
-        Worksheet worksheet = this.worksheets.get(receiving.getTransactionID());
+    public synchronized ReceivingMessage CancelWorkSheet(ReceivingMessage receivingMessage) {
+        Worksheet worksheet = this.worksheets.get(receivingMessage.getTransactionID());
         // TODO: Warehouse -> terminál felszabadítása
         // TODO: Renter -> lokációk felszabadítása
         // TODO: Accounting -> Logisztikai művelet lejelentése
         worksheet.setCancelled();
-        return receiving;
+        return receivingMessage;
     }
 
     // Lokáció foglalás
@@ -452,18 +452,8 @@ public class Warehouse implements Serializable {
 
     // Reports
 
-    // TODO: bérlők jelentés
-    public synchronized Report RenterReport(Report report) {
-        StringBuilder reply = new StringBuilder();
-
-        reply.append("Report nincs lefejlesztve!");
-
-        report.setReply(reply.toString());
-        return report;
-    }
-
     // Munkalapok jelentés
-    public synchronized Report WorksheetReport(Report report) {
+    public synchronized ReportMessage WorksheetReport(ReportMessage reportMessage) {
         Map<Integer, Worksheet> worklist = this.worksheets;
         StringBuilder reply = new StringBuilder();
         DateTimeFormatter date = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -494,12 +484,12 @@ public class Warehouse implements Serializable {
         }
 
         // Válasz mentése a jelentésbe
-        report.setReply(reply.toString());
-        return report;
+        reportMessage.setReply(reply.toString());
+        return reportMessage;
     }
 
     // Lokáció jelentés
-    public synchronized Report LocationReport(Report report) {
+    public synchronized ReportMessage LocationReport(ReportMessage reportMessage) {
         StringBuilder reply = new StringBuilder();
         Map<Integer,Location> normalLocations = this.normalLocations;
         Map<Integer,Location> cooledLocations = this.cooledLocations;
@@ -523,8 +513,8 @@ public class Warehouse implements Serializable {
         getLocationList(reply, cooledLocations);
 
         // Válasz mentése a jelentésbe
-        report.setReply(reply.toString());
-        return report;
+        reportMessage.setReply(reply.toString());
+        return reportMessage;
     }
 
     // Lokáció lista lokáció jelentéshez
@@ -540,8 +530,8 @@ public class Warehouse implements Serializable {
         }
     }
 
-    // Terminál foglalások jelentés - TODO ez még valamiért nem müxik
-    public synchronized Report TerminalReport(Report report) {
+    // Terminál foglalások jelentés
+    public synchronized ReportMessage TerminalReport(ReportMessage reportMessage) {
         StringBuilder reply = new StringBuilder();
 
         // Fejléc
@@ -563,8 +553,8 @@ public class Warehouse implements Serializable {
         getTerminalList(reply, reservedCooledTerminals);
 
         // Válasz mentése a jelentésbe
-        report.setReply(reply.toString());
-        return report;
+        reportMessage.setReply(reply.toString());
+        return reportMessage;
     }
 
     private void getTerminalList(StringBuilder reply, ConcurrentHashMap<LocalDateTime, List<Integer>> terminals) {

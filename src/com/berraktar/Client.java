@@ -110,16 +110,16 @@ public class Client {
             while(!input.equals("5")){
                 switch(input){
                     case "1":
-                        GetReport(oos, ois, Report.ReportType.Renters);
+                        GetReport(oos, ois, ReportMessage.ReportType.Renters);
                         break;
                     case "2":
-                        GetReport(oos, ois, Report.ReportType.Worksheets);
+                        GetReport(oos, ois, ReportMessage.ReportType.Worksheets);
                         break;
                     case "3":
-                        GetReport(oos, ois, Report.ReportType.Locations);
+                        GetReport(oos, ois, ReportMessage.ReportType.Locations);
                         break;
                     case "4":
-                        GetReport(oos, ois, Report.ReportType.Terminals);
+                        GetReport(oos, ois, ReportMessage.ReportType.Terminals);
                         break;
                     default:
                         System.out.println("A megadott menüpont nem létezik! (" + input + ")");
@@ -179,11 +179,11 @@ public class Client {
         }
     }
 
-    private static void GetReport(ObjectOutputStream oos, ObjectInputStream ois, Report.ReportType reportType) throws IOException, ClassNotFoundException {
-        Report report = new Report(reportType);
-        oos.writeObject(report);
-        report = (Report) ois.readObject();
-        System.out.println(report.getReply());
+    private static void GetReport(ObjectOutputStream oos, ObjectInputStream ois, ReportMessage.ReportType reportType) throws IOException, ClassNotFoundException {
+        ReportMessage reportMessage = new ReportMessage(reportType);
+        oos.writeObject(reportMessage);
+        reportMessage = (ReportMessage) ois.readObject();
+        System.out.println(reportMessage.getReply());
     }
 
     // TODO: Buta login, ellenőrzést és visszatérést betenni

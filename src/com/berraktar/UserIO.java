@@ -62,25 +62,25 @@ public final class UserIO {
     }
 
     // Munkalap kitöltése a foglalási adatokkal
-    public static Worksheet fillWorkSheet(Worksheet worksheet, Reservation reservation) {
-        worksheet.setRenterID(reservation.getRenterID());
-        worksheet.setExternalPartNumber(reservation.getPartNumber());
-        worksheet.updateCooled(reservation.isCooled());
-        worksheet.setNumberOfPallets(reservation.getPallets());
-        worksheet.setReservedDate(reservation.getReservationDate());
+    public static Worksheet fillWorkSheet(Worksheet worksheet, ReservationMessage reservationMessage) {
+        worksheet.setRenterID(reservationMessage.getRenterID());
+        worksheet.setExternalPartNumber(reservationMessage.getPartNumber());
+        worksheet.updateCooled(reservationMessage.isCooled());
+        worksheet.setNumberOfPallets(reservationMessage.getPallets());
+        worksheet.setReservedDate(reservationMessage.getReservationDate());
         return worksheet;
     }
 
     // Foglalás adatainak tömör (egy soros) kiíratása
-    public static void printReservation(Reservation reservation) {
-        System.out.print("\nID: " + reservation.getTransactionID() + " (" + reservation.isCreated() + ")");
-        System.out.print("\tBérlő: " + reservation.getRenterID());
-        System.out.print("\tCikk: " + reservation.getPartNumber());
-        System.out.print("\tHűtött: " + reservation.isCooled());
-        System.out.print("\tRaklap: " + reservation.getPallets());
-        System.out.print("\tIdő: " + UserIO.printDate(reservation.getReservationDate()));
+    public static void printReservation(ReservationMessage reservationMessage) {
+        System.out.print("\nID: " + reservationMessage.getTransactionID() + " (" + reservationMessage.isCreated() + ")");
+        System.out.print("\tBérlő: " + reservationMessage.getRenterID());
+        System.out.print("\tCikk: " + reservationMessage.getPartNumber());
+        System.out.print("\tHűtött: " + reservationMessage.isCooled());
+        System.out.print("\tRaklap: " + reservationMessage.getPallets());
+        System.out.print("\tIdő: " + UserIO.printDate(reservationMessage.getReservationDate()));
         System.out.print("\tFoglalás: ");
-        System.out.print(reservation.isApproved() ? "OK" : "NOK - " + reservation.getTransactionMessage());
+        System.out.print(reservationMessage.isApproved() ? "OK" : "NOK - " + reservationMessage.getTransactionMessage());
     }
 
 }

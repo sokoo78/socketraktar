@@ -17,10 +17,6 @@ public class Renter implements Serializable {
     private int freeCooledLocations;
     private int numberOfLogisticsOperations;
 
-    // Készlet adatok
-    private Map<String, List<Integer>> normalStock;
-    private Map<String, List<Integer>> cooledStock;
-
     // Konstruktor
     Renter(String name, String code, int rentedNormalLocations, int rentedCooledLocations, int freeNormalLocations, int freeCooledLocations, int numberOfLogisticsOperations) {
         this.name = name;
@@ -30,28 +26,6 @@ public class Renter implements Serializable {
         this.freeNormalLocations = freeNormalLocations;
         this.freeCooledLocations = freeCooledLocations;
         this.numberOfLogisticsOperations = numberOfLogisticsOperations;
-    }
-
-    // Készlet hozzáadása
-    public void addStock(boolean isCooled, String externalPartNumber, List<Integer> locations){
-        Map<String, List<Integer>> stock;
-        // Hűtött áru
-        if (isCooled){
-            stock = this.cooledStock;
-        }
-        // Normál áru
-        else {
-            stock = this.normalStock;
-        }
-
-        // Van már ilyen anyag készleten
-        if (stock.get(externalPartNumber) != null) {
-            locations.forEach(x -> stock.get(externalPartNumber).add(x));
-        }
-        // Nincs még ilyen anyag készleten
-        else {
-            stock.put(externalPartNumber,locations);
-        }
     }
 
     // Logisztikai műveletek hozzáadása

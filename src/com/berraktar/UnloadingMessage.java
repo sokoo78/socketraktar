@@ -2,7 +2,7 @@ package com.berraktar;
 
 import java.io.Serializable;
 
-public class Unloading implements Serializable {
+public class UnloadingMessage implements Serializable {
     private static final long serialVersionUID = -4292462495046993569L;
 
     // Művelet tulajdonságai
@@ -14,7 +14,7 @@ public class Unloading implements Serializable {
     private boolean isConfirmed;
     private String transactionMessage;
 
-    public Unloading(int transactionID, String scannedPartNumber) {
+    public UnloadingMessage(int transactionID, String scannedPartNumber) {
         this.transactionID = transactionID;
         this.internalPartNumber = scannedPartNumber;
     }

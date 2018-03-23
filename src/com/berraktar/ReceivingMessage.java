@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
-class Receiving implements Serializable {
+class ReceivingMessage implements Serializable {
 
     //Szerializációhoz kell
     private static final long serialVersionUID = 7239227608233814602L;
@@ -29,11 +29,11 @@ class Receiving implements Serializable {
 
     // Konstruktorok
 
-    Receiving(int transactionID) {
+    ReceivingMessage(int transactionID) {
         this.transactionID = transactionID;
     }
 
-    Receiving(int transactionID, LocalDateTime receivingDate) {
+    ReceivingMessage(int transactionID, LocalDateTime receivingDate) {
     this.transactionID = transactionID;
     this.receivingDate = receivingDate;
     }

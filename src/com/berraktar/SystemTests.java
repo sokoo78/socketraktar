@@ -15,45 +15,45 @@ public final class SystemTests {
         System.out.println("\n Foglalási teszt\n");
 
         // Teszt foglalási adatok
-        List<Reservation> testReservations = new ArrayList<>();
+        List<ReservationMessage> testReservationMessages = new ArrayList<>();
 
         DateTimeFormatter dateformat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         LocalDateTime dateTime = LocalDateTime.parse("2019-12-01 12:00", dateformat);
 
         // Sikeres foglalások
-        testReservations.add(new Reservation("BEBE", "CIKK75110001", false, 1, dateTime));
-        testReservations.add(new Reservation("REZO", "NORM65110010", false, 1, dateTime));
-        testReservations.add(new Reservation("BEBE", "CIKK75110002", false, 2, dateTime));
-        testReservations.add(new Reservation("REZO", "HUTO75110011", true,  1, dateTime));
-        testReservations.add(new Reservation("GAPE", "NORM65110010", true,  1, dateTime));
-        testReservations.add(new Reservation("GAPE", "NORM65110011", true,  1, dateTime));
-        testReservations.add(new Reservation("GAPE", "NORM65110012", true,  1, dateTime.plusDays(2)));
+        testReservationMessages.add(new ReservationMessage("BEBE", "CIKK75110001", false, 1, dateTime));
+        testReservationMessages.add(new ReservationMessage("REZO", "NORM65110010", false, 1, dateTime));
+        testReservationMessages.add(new ReservationMessage("BEBE", "CIKK75110002", false, 2, dateTime));
+        testReservationMessages.add(new ReservationMessage("REZO", "HUTO75110011", true,  1, dateTime));
+        testReservationMessages.add(new ReservationMessage("GAPE", "NORM65110010", true,  1, dateTime));
+        testReservationMessages.add(new ReservationMessage("GAPE", "NORM65110011", true,  1, dateTime));
+        testReservationMessages.add(new ReservationMessage("GAPE", "NORM65110012", true,  1, dateTime.plusDays(2)));
 
         // Sikertelen foglalások
         // 1. Bérlő nem létezik
-        testReservations.add(new Reservation("NUKU", "CIKK75110001", false, 5, dateTime.plusDays(1)));
+        testReservationMessages.add(new ReservationMessage("NUKU", "CIKK75110001", false, 5, dateTime.plusDays(1)));
         // 2. Nincs a bérlőnek hűtött lokációja
-        testReservations.add(new Reservation("BEBE", "CIKK75110001", true,  1, dateTime.plusDays(1)));
+        testReservationMessages.add(new ReservationMessage("BEBE", "CIKK75110001", true,  1, dateTime.plusDays(1)));
         // 3. Nincs a bérlőnek elég szabad helye
-        testReservations.add(new Reservation("BEBE", "CIKK75110001", false, 501, dateTime.plusDays(1)));
+        testReservationMessages.add(new ReservationMessage("BEBE", "CIKK75110001", false, 501, dateTime.plusDays(1)));
         // 4. Nincs a megadott időpontban szabad terminál
-        testReservations.add(new Reservation("GAPE", "NORM65110010", true,  1, dateTime));
+        testReservationMessages.add(new ReservationMessage("GAPE", "NORM65110010", true,  1, dateTime));
 
         // Tesztek futtatása
-        for (int i = 0; i < testReservations.size(); i++) {
+        for (int i = 0; i < testReservationMessages.size(); i++) {
             // Inicializálás
-            Reservation reservation;
-            reservation = testReservations.get(i);
-            reservation.setWorkSheetType(Worksheet.WorkSheetType.Incoming);
-            oos.writeObject(reservation);
-            reservation = (Reservation) ois.readObject();
+            ReservationMessage reservationMessage;
+            reservationMessage = testReservationMessages.get(i);
+            reservationMessage.setWorkSheetType(Worksheet.WorkSheetType.Incoming);
+            oos.writeObject(reservationMessage);
+            reservationMessage = (ReservationMessage) ois.readObject();
 
             // Jóváhagyás
-            oos.writeObject(reservation);
-            reservation = (Reservation) ois.readObject();
+            oos.writeObject(reservationMessage);
+            reservationMessage = (ReservationMessage) ois.readObject();
 
             // Tömör kiírás
-            UserIO.printReservation(reservation);
+            UserIO.printReservation(reservationMessage);
         }
     }
 
@@ -61,29 +61,29 @@ public final class SystemTests {
     public static void doReceivingTest(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
         System.out.println("\n Beérkezési teszt\n");
 
-        List<Receiving> testReceivings = new ArrayList<>();
+        List<ReceivingMessage> testReceivingMessages = new ArrayList<>();
         DateTimeFormatter dateformat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
         // Sikeres beérkezések
-        testReceivings.add(new Receiving(1,LocalDateTime.parse("2019-12-01 12:00", dateformat))); // Pont időben
-        testReceivings.add(new Receiving(2,LocalDateTime.parse("2019-12-01 12:15", dateformat))); // Intervallumon belül
-        testReceivings.add(new Receiving(3,LocalDateTime.parse("2019-12-01 12:30", dateformat))); // Utolsó pillanatban
+        testReceivingMessages.add(new ReceivingMessage(1,LocalDateTime.parse("2019-12-01 12:00", dateformat))); // Pont időben
+        testReceivingMessages.add(new ReceivingMessage(2,LocalDateTime.parse("2019-12-01 12:15", dateformat))); // Intervallumon belül
+        testReceivingMessages.add(new ReceivingMessage(3,LocalDateTime.parse("2019-12-01 12:30", dateformat))); // Utolsó pillanatban
 
         // Sikertelen beérkezések
-        testReceivings.add(new Receiving(0,LocalDateTime.parse("2019-12-01 11:59", dateformat))); // Nem létező tranzakció
-        testReceivings.add(new Receiving(1,LocalDateTime.parse("2019-12-01 12:00", dateformat))); // Már aktív
-        testReceivings.add(new Receiving(4,LocalDateTime.parse("2019-12-01 11:59", dateformat))); // Egy perccel korábban
-        testReceivings.add(new Receiving(5,LocalDateTime.parse("2019-12-01 12:31", dateformat))); // Egy perccel később
+        testReceivingMessages.add(new ReceivingMessage(0,LocalDateTime.parse("2019-12-01 11:59", dateformat))); // Nem létező tranzakció
+        testReceivingMessages.add(new ReceivingMessage(1,LocalDateTime.parse("2019-12-01 12:00", dateformat))); // Már aktív
+        testReceivingMessages.add(new ReceivingMessage(4,LocalDateTime.parse("2019-12-01 11:59", dateformat))); // Egy perccel korábban
+        testReceivingMessages.add(new ReceivingMessage(5,LocalDateTime.parse("2019-12-01 12:31", dateformat))); // Egy perccel később
 
         // Tesztek futtatása
-        for (int i = 0; i < testReceivings.size(); i++) {
-            Receiving receiving = testReceivings.get(i);
-            oos.writeObject(receiving);
-            receiving = (Receiving) ois.readObject();
-            if (receiving.isApproved()){
-                System.out.print("\n" + receiving.getTransactionID() + " OK");
+        for (int i = 0; i < testReceivingMessages.size(); i++) {
+            ReceivingMessage receivingMessage = testReceivingMessages.get(i);
+            oos.writeObject(receivingMessage);
+            receivingMessage = (ReceivingMessage) ois.readObject();
+            if (receivingMessage.isApproved()){
+                System.out.print("\n" + receivingMessage.getTransactionID() + " OK");
             } else {
-                System.out.print("\n" + receiving.getTransactionID() + " NOK: " +receiving.getTransactionMessage() + "\t");
+                System.out.print("\n" + receivingMessage.getTransactionID() + " NOK: " + receivingMessage.getTransactionMessage() + "\t");
             }
         }
     }
@@ -92,37 +92,37 @@ public final class SystemTests {
         System.out.println("\n Bevételezés teszt\n");
 
         // Adatok lekérése a szerverről az 1-es teszt tranzakcióhoz
-        Receiving receiving = new Receiving(1);
-        receiving.setApproved();
-        oos.writeObject(receiving);
-        receiving = (Receiving)ois.readObject();
-        if (receiving.isProcessing()){
+        ReceivingMessage receivingMessage = new ReceivingMessage(1);
+        receivingMessage.setApproved();
+        oos.writeObject(receivingMessage);
+        receivingMessage = (ReceivingMessage)ois.readObject();
+        if (receivingMessage.isProcessing()){
             System.out.print("\nAdatlekérés OK");
         } else {
-            System.out.print("\nAdatlekérés NOK - Szerver üzenete: " + receiving.getTransactionMessage());
+            System.out.print("\nAdatlekérés NOK - Szerver üzenete: " + receivingMessage.getTransactionMessage());
         }
 
         // Paletták szkennelése és kipakolása
-        for (int i = 0; i < receiving.getPallets(); i++) {
-            receiving.setInternalPartNumber(generateInternalPartNumber(receiving));
-            Unloading unloading = new Unloading(receiving.getTransactionID(), receiving.getInternalPartNumber());
-            oos.writeObject(unloading);
-            unloading = (Unloading)ois.readObject();
-            if (unloading.isConfirmed()){
-                System.out.print("\nKirakodás OK " + receiving.getTerminalID() + " terminálra!");
+        for (int i = 0; i < receivingMessage.getPallets(); i++) {
+            receivingMessage.setInternalPartNumber(generateInternalPartNumber(receivingMessage));
+            UnloadingMessage unloadingMessage = new UnloadingMessage(receivingMessage.getTransactionID(), receivingMessage.getInternalPartNumber());
+            oos.writeObject(unloadingMessage);
+            unloadingMessage = (UnloadingMessage)ois.readObject();
+            if (unloadingMessage.isConfirmed()){
+                System.out.print("\nKirakodás OK " + receivingMessage.getTerminalID() + " terminálra!");
             } else {
-                System.out.print("\nKirakodás NOK - Szerver üzenete: " + receiving.getTransactionMessage());
+                System.out.print("\nKirakodás NOK - Szerver üzenete: " + receivingMessage.getTransactionMessage());
             }
         }
 
         // Munkalap lejelentése a szervernek
-        receiving.setUnloaded();
-        oos.writeObject(receiving);
-        receiving = (Receiving)ois.readObject();
-        if (receiving.isCompleted()){
+        receivingMessage.setUnloaded();
+        oos.writeObject(receivingMessage);
+        receivingMessage = (ReceivingMessage)ois.readObject();
+        if (receivingMessage.isCompleted()){
             System.out.print("\nBevételezés OK");
         } else {
-            System.out.print("\nBevételezés NOK - Szerver üzenete: " + receiving.getTransactionMessage());
+            System.out.print("\nBevételezés NOK - Szerver üzenete: " + receivingMessage.getTransactionMessage());
         }
     }
 

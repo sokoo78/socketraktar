@@ -2,7 +2,7 @@ package com.berraktar;
 
 import java.io.Serializable;
 
-public class Report implements Serializable {
+public class ReportMessage implements Serializable {
     // Szerializációhoz kell
     private static final long serialVersionUID = 5843645352677089659L;
 
@@ -14,7 +14,7 @@ public class Report implements Serializable {
     private String reply;
 
     // Konstruktor
-    public Report(ReportType reportType) {
+    public ReportMessage(ReportType reportType) {
         this.reportType = reportType;
     }
 

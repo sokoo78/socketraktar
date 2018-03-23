@@ -33,11 +33,11 @@ class Accounting implements Serializable {
         Persistency.SaveObject(this.getRenters(), "Renters.ser");
     }
 
-    private synchronized static void GetReport(ObjectOutputStream oos, ObjectInputStream ois, Report.ReportType reportType) throws IOException, ClassNotFoundException {
-        Report report = new Report(reportType);
-        oos.writeObject(report);
-        report = (Report) ois.readObject();
-        System.out.println(report.getReply());
+    private synchronized static void GetReport(ObjectOutputStream oos, ObjectInputStream ois, ReportMessage.ReportType reportType) throws IOException, ClassNotFoundException {
+        ReportMessage reportMessage = new ReportMessage(reportType);
+        oos.writeObject(reportMessage);
+        reportMessage = (ReportMessage) ois.readObject();
+        System.out.println(reportMessage.getReply());
     }
 
     public synchronized int getTotalCooledReservations(){
