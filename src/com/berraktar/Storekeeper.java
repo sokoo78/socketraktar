@@ -3,12 +3,15 @@ package com.berraktar;
 import java.io.*;
 
 public class Storekeeper extends Employee {
+    // Szerializációhoz kell
+    private static final long serialVersionUID = 3980978824897032892L;
 
+    // Konstruktor
     public Storekeeper(String name, UserType position) {
         super(name, position);
     }
 
-    // TODO: Bevételzés
+    // Bevételzés
     public static void doReceiving(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 

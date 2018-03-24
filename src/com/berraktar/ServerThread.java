@@ -42,22 +42,22 @@ class ServerThread extends Thread {
 
                 // Worksheet típusú üzenet feldolgozása
                 if (object instanceof ReservationMessage) {
-                    doReservation(objectOutputStream, (ReservationMessage)object, employee.getName());
+                    callReservation(objectOutputStream, (ReservationMessage)object, employee.getName());
                 }
 
                 // ReceivingMessage típusú üzenet feldolgozása
                 if (object instanceof ReceivingMessage) {
-                    doReceiving(objectOutputStream, (ReceivingMessage)object, employee.getName());
+                    callReceiving(objectOutputStream, (ReceivingMessage)object, employee.getName());
                 }
 
                 // UnloadingMessage típusú üzenet feldolgozása
                 if (object instanceof UnloadingMessage) {
-                    doUnloading(objectOutputStream, (UnloadingMessage)object, employee.getName());
+                    callUnloading(objectOutputStream, (UnloadingMessage)object, employee.getName());
                 }
 
                 // ServerTest típusú üzenet feldolgozása
                 if (object instanceof ServerTest) {
-                    doServerTest(objectOutputStream, (ServerTest)object, employee.getName());
+                    callServerTest(objectOutputStream, (ServerTest)object, employee.getName());
                 }
 
                 // ReportMessage típusú üzenet feldolgozása
@@ -78,22 +78,22 @@ class ServerThread extends Thread {
     private void doReport(ObjectOutputStream oos, ReportMessage reportMessage, String userName) throws IOException {
         switch (reportMessage.getReportType()){
             case Renters:
-                reportMessage = Reporting.RenterReport(reportMessage, accounting);
+                reportMessage = Reporting.RenterReport(reportMessage, accounting.getRenters());
                 oos.writeObject(reportMessage);
                 System.out.println(userName + " jelentést kért: " + reportMessage.getReportType());
                 break;
             case Worksheets:
-                reportMessage = warehouse.WorksheetReport(reportMessage);
+                reportMessage = Reporting.WorksheetReport(reportMessage, warehouse.getWorksheets());
                 oos.writeObject(reportMessage);
                 System.out.println(userName + " jelentést kért: " + reportMessage.getReportType());
                 break;
             case Locations:
-                reportMessage = warehouse.LocationReport(reportMessage);
+                reportMessage = Reporting.LocationReport(reportMessage, warehouse);
                 oos.writeObject(reportMessage);
                 System.out.println(userName + " jelentést kért: " + reportMessage.getReportType());
                 break;
             case Terminals:
-                reportMessage = warehouse.TerminalReport(reportMessage);
+                reportMessage = Reporting.TerminalReport(reportMessage, warehouse);
                 oos.writeObject(reportMessage);
                 System.out.println(userName + " jelentést kért: " + reportMessage.getReportType());
                 break;
@@ -105,7 +105,7 @@ class ServerThread extends Thread {
     }
 
     // Új foglalás
-    private void doReservation(ObjectOutputStream oos, ReservationMessage reservationMessage, String userName) throws IOException {
+    private void callReservation(ObjectOutputStream oos, ReservationMessage reservationMessage, String userName) throws IOException {
         // Munkalap létrehozása, ha még nincs létrehozva
         if (!reservationMessage.isCreated()) {
             reservationMessage.setTransactionID(warehouse.CreateWorkSheet(reservationMessage.getWorkSheetType()));
@@ -122,7 +122,7 @@ class ServerThread extends Thread {
 }
 
     // Beérkezés
-    private void doReceiving(ObjectOutputStream oos, ReceivingMessage receivingMessage, String userName) throws IOException {
+    private void callReceiving(ObjectOutputStream oos, ReceivingMessage receivingMessage, String userName) throws IOException {
         // Munkalap aktiválása, ha még nem aktív
         if (!receivingMessage.isApproved()){
             receivingMessage = warehouse.ActivateWorkSheet(receivingMessage);
@@ -142,14 +142,14 @@ class ServerThread extends Thread {
         }
     }
 
-    private void doUnloading(ObjectOutputStream oos, UnloadingMessage unloadingMessage, String userName) throws IOException {
+    private void callUnloading(ObjectOutputStream oos, UnloadingMessage unloadingMessage, String userName) throws IOException {
         unloadingMessage = warehouse.UnloadWorkSheet(unloadingMessage);
         oos.writeObject(unloadingMessage);
         System.out.println(userName + " munkalapot küldött kirakodásra - transactionID: " + unloadingMessage.getTransactionID());
     }
 
     // Szerver teszt
-    private void doServerTest(ObjectOutputStream oos, ServerTest serverTest, String userName) throws IOException {
+    private void callServerTest(ObjectOutputStream oos, ServerTest serverTest, String userName) throws IOException {
         // Összeszorozzuk a két számot amit kaptunk az objektumban
         serverTest.setResult(serverTest.getFirstNumber() * serverTest.getSecondNumber());
         System.out.println("DoTest metódust hívta: " + userName);

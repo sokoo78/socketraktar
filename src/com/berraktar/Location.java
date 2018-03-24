@@ -12,7 +12,7 @@ public class Location implements Serializable {
     private Pallet pallet = new Pallet();
 
     // Lokáció állapota
-    private boolean isReserved = false;
+    private boolean isReserved;
 
     // Konstruktor
     Location(int locationID, String renterID, boolean isReserved){
@@ -20,6 +20,20 @@ public class Location implements Serializable {
         this.RenterID = renterID;
         this.isReserved = isReserved;
     }
+
+    // Paletta elhelyezése a lókációba
+    public void addPallet(Pallet pallet) {
+        this.pallet = pallet;
+    }
+
+    // Paletta levétele a lokációból
+    public Pallet takePallet() {
+        Pallet _pallet = this.pallet;
+        this.pallet = null;
+        return _pallet;
+    }
+
+    // Paletta getterei és setterei
 
     public Pallet scanPallet(){
         return this.pallet.scanPallet();
@@ -49,15 +63,7 @@ public class Location implements Serializable {
         }
     }
 
-    public void addPallet(Pallet pallet) {
-        this.pallet = pallet;
-    }
-
-    public Pallet takePallet() {
-        Pallet _pallet = this.pallet;
-        this.pallet = null;
-        return _pallet;
-    }
+    // Lokáció getterei és setterei
 
     public int getLocationID() {
         return locationID;

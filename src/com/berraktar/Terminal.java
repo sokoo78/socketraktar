@@ -18,15 +18,20 @@ public class Terminal implements Serializable {
         this.id = id;
     }
 
-    // Műveletek
 
+    // Paletta lerakodása a terminálra
+    public void addPallet(Pallet pallet){
+        this.palletList.put(pallet.getInternalPartNumber(), pallet);
+    }
+
+    // Paletta kirakodása a terminálról
     public Pallet takePallet(String palletID){
         Pallet _pallet = palletList.get(palletID);
         palletList.remove(palletID);
         return _pallet;
     }
 
-    // Getterek, Setterek
+    // Terminál getterei és setterei
 
     public Map<String, Pallet> getPalletList() {
         return palletList;
@@ -34,10 +39,6 @@ public class Terminal implements Serializable {
 
     public void setPalletList(Map<String, Pallet> palletList) {
         this.palletList = palletList;
-    }
-
-    public void addPallet(Pallet pallet){
-        this.palletList.put(pallet.getInternalPartNumber(), pallet);
     }
 
     public int getId() {

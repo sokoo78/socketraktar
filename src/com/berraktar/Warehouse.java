@@ -3,7 +3,6 @@ package com.berraktar;
 import java.io.File;
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -450,157 +449,73 @@ public class Warehouse implements Serializable {
         return 0;
     }
 
-    // Reports
-
-    // Munkalapok jelentés
-    public synchronized ReportMessage WorksheetReport(ReportMessage reportMessage) {
-        Map<Integer, Worksheet> worklist = this.worksheets;
-        StringBuilder reply = new StringBuilder();
-        DateTimeFormatter date = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        DateTimeFormatter time = DateTimeFormatter.ofPattern("HH:mm");
-
-        // Fejléc
-        reply.append("\nID#\t\tStátusz\t\t\tBérlő#\tDátum\t\tIdő\t\tPaletta#\tMunka\tTerminál\tLokációk");
-
-        // Munkalapok adatainak kigyűjtése
-        for (Map.Entry<Integer, Worksheet> entry : worklist.entrySet()) {
-            Worksheet value = entry.getValue();
-            reply.append("\n").append(entry.getKey()).append("\t\t");
-            reply.append(value.getStatus()).append("\t");
-            if (value.isApproved()) {
-                reply.append(value.getRenterID()).append("\t");
-                reply.append(value.getReservedDate().format(date)).append("\t");
-                reply.append(value.getReservedDate().format(time)).append("\t");
-                reply.append(value.getNumberOfPallets()).append("\t\t\t");
-                reply.append(value.getWorkSheetType()).append("\t");
-                reply.append(value.getTerminalID()).append("\t\t");
-                if (value.isCooled()){
-                    reply.append(" (Hűtött) ");
-                } else {
-                    reply.append(" (Normál) ");
-                }
-                reply.append(value.getLocations());
-            }
-        }
-
-        // Válasz mentése a jelentésbe
-        reportMessage.setReply(reply.toString());
-        return reportMessage;
-    }
-
-    // Lokáció jelentés
-    public synchronized ReportMessage LocationReport(ReportMessage reportMessage) {
-        StringBuilder reply = new StringBuilder();
-        Map<Integer,Location> normalLocations = this.normalLocations;
-        Map<Integer,Location> cooledLocations = this.cooledLocations;
-
-        // Fejléc
-        reply.append("\nLokáció összefoglaló\n\n");
-
-        // Lokáció fő adatok
-        reply.append("Szabad / maximális normál lokációk száma:   \t");
-        reply.append(this.freeNormalLocation).append(" / ").append(this.getMaxNormalLocation()).append("\n");
-        reply.append("Szabad / maximális hűtött lokációk száma:   \t");
-        reply.append(this.freeCooledLocation).append(" / ").append(this.getMaxCooledLocation()).append("\n");
-
-        // Lokáció részletek
-        reply.append("\nFoglalt normál lokációk listája\n");
-        reply.append("\nLocID#\tRenterID\tInternalID\t\t\tExternalID");
-        getLocationList(reply, normalLocations);
-
-        reply.append("\n\nFoglalt hűtött lokációk listája\n");
-        reply.append("\nLocID#\tRenterID\tInternalID\t\t\tExternalID");
-        getLocationList(reply, cooledLocations);
-
-        // Válasz mentése a jelentésbe
-        reportMessage.setReply(reply.toString());
-        return reportMessage;
-    }
-
-    // Lokáció lista lokáció jelentéshez
-    private synchronized void getLocationList(StringBuilder reply, Map<Integer, Location> locations) {
-        for (Map.Entry<Integer, Location> entry : locations.entrySet()) {
-            Location value = entry.getValue();
-            if (value.getRenterID() != null) {
-                reply.append("\n").append(entry.getKey()).append("\t\t");
-                reply.append(value.getRenterID()).append("\t\t\t");
-                reply.append(value.scanPalletInternalID()).append("\t\t\t");
-                reply.append(value.scanPalletExternalID()).append("\t\t\t");
-            }
-        }
-    }
-
-    // Terminál foglalások jelentés
-    public synchronized ReportMessage TerminalReport(ReportMessage reportMessage) {
-        StringBuilder reply = new StringBuilder();
-
-        // Fejléc
-        reply.append("\nTerminál foglalások\n\n");
-
-        // Terminál fő adatok
-        reply.append("Szabad / maximális normál terminálok száma: \t");
-        reply.append(this.freeNormalTerminal).append(" / ").append(this.getMaxNormalTerminal()).append("\n");
-        reply.append("Szabad / maximális hűtött terminálok száma: \t");
-        reply.append(this.freeCooledTerminal).append(" / ").append(this.getMaxCooledTerminal()).append("\n");
-
-        // Terminál részletek
-        reply.append("\nNormál terminál foglalások listája\n");
-        reply.append("\nDátum\t\t\t\tTerminálok");
-        getTerminalList(reply, reservedNormalTerminals);
-
-        reply.append("\n\nHűtött terminál foglalások listája\n");
-        reply.append("\nDátum\t\t\t\tTerminálok");
-        getTerminalList(reply, reservedCooledTerminals);
-
-        // Válasz mentése a jelentésbe
-        reportMessage.setReply(reply.toString());
-        return reportMessage;
-    }
-
-    private void getTerminalList(StringBuilder reply, ConcurrentHashMap<LocalDateTime, List<Integer>> terminals) {
-        for (Map.Entry<LocalDateTime, List<Integer>> entry : terminals.entrySet()) {
-            if (entry != null) {
-                reply.append("\n").append(entry.getKey()).append("\t\t").append(entry.getValue());
-            }
-        }
-    }
-
     // Getterek, Setterek
 
     public synchronized int getMaxNormalLocation() {
         return this.maxNormalLocation;
     }
-
     public synchronized int getMaxCooledLocation() {
         return this.maxCooledLocation;
     }
-
     public synchronized int getMaxNormalTerminal() {
         return this.maxNormalTerminal;
     }
-
     public synchronized int getMaxCooledTerminal() {
         return this.maxCooledTerminal;
+    }
+
+    public synchronized int getFreeNormalLocation() {
+        return this.freeNormalLocation;
+    }
+    public synchronized int getFreeCooledLocation() {
+        return this.freeCooledLocation;
+    }
+    public synchronized int getFreeNormalTerminal() {
+        return this.freeNormalTerminal;
+    }
+    public synchronized int getFreeCooledTerminal() {
+        return this.freeCooledTerminal;
     }
 
     public synchronized void increaseFreeCooledLocations(int byAmount){
         this.freeCooledLocation += byAmount;
     }
-
     public synchronized void increaseFreeNormalLocations(int byAmount){
         this.freeNormalLocation += byAmount;
     }
-
     public synchronized void decreaseFreeCooledLocations(int byAmount){
         this.freeCooledLocation -= byAmount;
     }
-
     public synchronized void decreaseFreeNormalLocations(int byAmount){
         this.freeNormalLocation -= byAmount;
     }
 
-    // TODO: Terminál foglalások nem jól mentődnek, ez befrissíti a listákat amíg nincs meg a bug
-    public synchronized void updateTerminalReservations() {
+    public synchronized ConcurrentHashMap<Integer, Worksheet> getWorksheets(){
+        return this.worksheets;
+    }
+
+    public synchronized ConcurrentHashMap<Integer,Location> getNormalLocations(){
+        return this.normalLocations;
+    }
+    public synchronized ConcurrentHashMap<Integer,Location> getCooledLocations(){
+        return this.cooledLocations;
+    }
+    public synchronized ConcurrentHashMap<Integer,Terminal> getNormalTerminals(){
+        return this.normalTerminals;
+    }
+    public synchronized ConcurrentHashMap<Integer,Terminal> getCooledTerminals(){
+        return this.cooledTerminals;
+    }
+
+    public synchronized ConcurrentHashMap<LocalDateTime,List<Integer>> getReservedNormalTerminals(){
+        return this.reservedNormalTerminals;
+    }
+    public synchronized ConcurrentHashMap<LocalDateTime,List<Integer>> getReservedCooledTerminals(){
+        return this.reservedCooledTerminals;
+    }
+
+    // TODO: Terminál foglalások nem jól mentődnek fájlba, ez befrissíti a listákat amíg nincs meg a bug
+    private synchronized void updateTerminalReservations() {
         Map<Integer, Worksheet> worklist = this.worksheets;
 
         // Munkalapok adatainak kigyűjtése

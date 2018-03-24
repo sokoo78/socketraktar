@@ -88,6 +88,7 @@ public final class SystemTests {
         }
     }
 
+    // Betárolási teszt
     public static void doIncomingTest(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
         System.out.println("\n Bevételezés teszt\n");
 
@@ -126,7 +127,7 @@ public final class SystemTests {
         }
     }
 
-    // Szerver teszt
+    // Kliens-Szerver kommunikáció teszt
     static void doServerTest(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         Integer firstNumber = null;

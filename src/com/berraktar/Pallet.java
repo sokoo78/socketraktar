@@ -14,15 +14,11 @@ public class Pallet implements Serializable {
     Pallet() {}
 
     Pallet(String renterID, String externalPartNumber) {
-        this.setRenterID(renterID);
-        this.setExternalPartNumber(externalPartNumber);
+        this.renterID = renterID;
+        this.externalPartNumber = externalPartNumber;
     }
 
-    public Pallet(String internalPartNumber, String externalPartNumber, String renterID) {
-        this.internalPartNumber = internalPartNumber;
-        this.externalPartNumber = externalPartNumber;
-        this.renterID = renterID;
-    }
+    // Getterek, setterek
 
     public synchronized Pallet scanPallet(){
         return this;
@@ -40,15 +36,8 @@ public class Pallet implements Serializable {
         return externalPartNumber;
     }
 
-    public synchronized void setExternalPartNumber(String externalPartNumber) {
-        this.externalPartNumber = externalPartNumber;
-    }
-
     public synchronized String getRenterID() {
         return renterID;
     }
 
-    public synchronized void setRenterID(String renterID) {
-        this.renterID = renterID;
-    }
 }

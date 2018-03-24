@@ -14,7 +14,9 @@ public class UnloadingMessage implements Serializable {
     private boolean isConfirmed;
     private String transactionMessage;
 
-    public UnloadingMessage(int transactionID, String scannedPartNumber) {
+
+    // Konstruktor
+    UnloadingMessage(int transactionID, String scannedPartNumber) {
         this.transactionID = transactionID;
         this.internalPartNumber = scannedPartNumber;
     }
