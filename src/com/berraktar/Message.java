@@ -2,14 +2,13 @@ package com.berraktar;
 
 import java.io.Serializable;
 
-public class Transactions implements Serializable {
+public class Message implements Serializable {
 
     // Szerializációhoz kell
     private static final long serialVersionUID = 2611041076912112709L;
 
     // Tranzakciók közös tulajdonságai
     private int transactionID;
-    private Employee.TransactionType transactionType;
     private boolean isApproved;
 
     public void setTransactionID(int transactionID) {
@@ -28,11 +27,4 @@ public class Transactions implements Serializable {
         isApproved = true;
     }
 
-    public Employee.TransactionType getTransactionType() {
-        return transactionType;
-    }
-
-    public void setTransactionType(Employee.TransactionType transactionType) {
-        this.transactionType = transactionType;
-    }
 }

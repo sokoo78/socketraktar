@@ -41,14 +41,17 @@ public final class SystemTests {
 
         // Tesztek futtatása
         for (int i = 0; i < testReservationMessages.size(); i++) {
-            // Inicializálás
-            ReservationMessage reservationMessage;
-            reservationMessage = testReservationMessages.get(i);
-            reservationMessage.setWorkSheetType(Worksheet.WorkSheetType.Incoming);
-            oos.writeObject(reservationMessage);
-            reservationMessage = (ReservationMessage) ois.readObject();
 
-            // Jóváhagyás
+            // Tranzakció azonosító kérés
+            CreateWorkMessage createWorkMessage = new CreateWorkMessage();
+            createWorkMessage.setIncoming();
+            oos.writeObject(createWorkMessage);
+            createWorkMessage = (CreateWorkMessage) ois.readObject();
+
+            // Foglalási kérelem
+            ReservationMessage reservationMessage = testReservationMessages.get(i);
+            reservationMessage.setTransactionID(createWorkMessage.getTransactionID());
+            reservationMessage.setWorkSheetType(Worksheet.WorkSheetType.Incoming);
             oos.writeObject(reservationMessage);
             reservationMessage = (ReservationMessage) ois.readObject();
 

@@ -16,15 +16,17 @@ public class Dispatcher extends Employee implements Serializable {
     static void newReservation(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
+        // Új munkalap (tranzakció azonosító) kérelem
+        CreateWorkMessage createWorkMessage = new CreateWorkMessage();
+        createWorkMessage.setIncoming();
+        oos.writeObject(createWorkMessage);
+        createWorkMessage = (CreateWorkMessage) ois.readObject();
+
         // Új foglalási kérelem
         ReservationMessage reservationMessage = new ReservationMessage();
+        reservationMessage.setTransactionID(createWorkMessage.getTransactionID());
         reservationMessage.setWorkSheetType(Worksheet.WorkSheetType.Incoming);
-
-        // Tranzakciószám kérése a szervertől
-        oos.writeObject(reservationMessage);
-        reservationMessage = (ReservationMessage) ois.readObject();
-        System.out.print("\nÚj munkalap létrehozva - Tranzakcióazonosító: " +
-                reservationMessage.getTransactionID() + " (isInitialized: " + reservationMessage.isCreated() + ")");
+        System.out.print("\nÚj munkalap létrehozva - Tranzakcióazonosító: " + createWorkMessage.getTransactionID());
 
         // Kérelem adatainak bekérése a munkalapra
         System.out.print("\nVevőkód: ");

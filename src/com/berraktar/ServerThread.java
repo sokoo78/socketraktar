@@ -40,9 +40,14 @@ class ServerThread extends Thread {
             // Beérkező objektumok feldolgozása
             while ((object = objectInputStream.readObject()) != null){
 
-                // Worksheet típusú üzenet feldolgozása
+                // Create típusú üzenet feldolgozása
+                if (object instanceof CreateWorkMessage) {
+                    callCreate(objectOutputStream, (CreateWorkMessage)object, employee.getName());
+                }
+
+                // Reservation típusú üzenet feldolgozása
                 if (object instanceof ReservationMessage) {
-                    callReservation(objectOutputStream, (ReservationMessage)object, employee.getName());
+                    callReserve(objectOutputStream, (ReservationMessage)object, employee.getName());
                 }
 
                 // ReceivingMessage típusú üzenet feldolgozása
@@ -62,7 +67,7 @@ class ServerThread extends Thread {
 
                 // ReportMessage típusú üzenet feldolgozása
                 if (object instanceof ReportMessage) {
-                    doReport(objectOutputStream, (ReportMessage)object, employee.getName());
+                    callReport(objectOutputStream, (ReportMessage)object, employee.getName());
                 }
             }
 
@@ -75,7 +80,50 @@ class ServerThread extends Thread {
         }
     }
 
-    private void doReport(ObjectOutputStream oos, ReportMessage reportMessage, String userName) throws IOException {
+    // Új munkalap
+    private void callCreate(ObjectOutputStream oos, CreateWorkMessage createWorkMessage, String userName) throws IOException {
+        createWorkMessage.setTransactionID(WorkOrders.CreateWorkSheet(createWorkMessage));
+        oos.writeObject(createWorkMessage);
+        System.out.println(userName + " új munkalapot hozott létre - transactionID: " + createWorkMessage.getTransactionID());
+    }
+
+    // Új foglalás
+    private void callReserve(ObjectOutputStream oos, ReservationMessage reservationMessage, String userName) throws IOException {
+        reservationMessage = warehouse.DoReservation(reservationMessage, accounting);
+        oos.writeObject(reservationMessage);
+        System.out.println(userName + " munkalapot küldött jóváhagyásra - transactionID: " + reservationMessage.getTransactionID());
+    }
+
+    // Beérkezés
+    private void callReceiving(ObjectOutputStream oos, ReceivingMessage receivingMessage, String userName) throws IOException {
+        // Munkalap aktiválása, ha még nem aktív
+        if (!receivingMessage.isApproved()){
+            receivingMessage = WorkOrders.ActivateWorkSheet(receivingMessage);
+            oos.writeObject(receivingMessage);
+            System.out.println(userName + " munkalapot küldött aktiválásra - transactionID: " + receivingMessage.getTransactionID());
+        }
+        // Beérkeztetés indítása
+        else if (!receivingMessage.isUnloaded()){
+            receivingMessage = WorkOrders.ProcessWorkSheet(receivingMessage);
+            oos.writeObject(receivingMessage);
+            System.out.println(userName + " munkalapot küldött végrehajtásra - transactionID: " + receivingMessage.getTransactionID());
+        } else {
+        // Beérkezés visszaigazolása, és lezárása
+            receivingMessage = warehouse.DoStoring(receivingMessage, accounting);
+            oos.writeObject(receivingMessage);
+            System.out.println(userName + " munkalapot küldött lezárásra - transactionID: " + receivingMessage.getTransactionID());
+        }
+    }
+
+    // Betárolás
+    private void callUnloading(ObjectOutputStream oos, UnloadingMessage unloadingMessage, String userName) throws IOException {
+        unloadingMessage = warehouse.DoUnloading(unloadingMessage);
+        oos.writeObject(unloadingMessage);
+        System.out.println(userName + " munkalapot küldött kirakodásra - transactionID: " + unloadingMessage.getTransactionID());
+    }
+
+    // Jelentések
+    private void callReport(ObjectOutputStream oos, ReportMessage reportMessage, String userName) throws IOException {
         switch (reportMessage.getReportType()){
             case Renters:
                 reportMessage = Reporting.RenterReport(reportMessage, accounting.getRenters());
@@ -83,7 +131,7 @@ class ServerThread extends Thread {
                 System.out.println(userName + " jelentést kért: " + reportMessage.getReportType());
                 break;
             case Worksheets:
-                reportMessage = Reporting.WorksheetReport(reportMessage, warehouse.getWorksheets());
+                reportMessage = Reporting.WorksheetReport(reportMessage, WorkOrders.getWorksheets());
                 oos.writeObject(reportMessage);
                 System.out.println(userName + " jelentést kért: " + reportMessage.getReportType());
                 break;
@@ -102,50 +150,6 @@ class ServerThread extends Thread {
             case Shipments:
                 break;
         }
-    }
-
-    // Új foglalás
-    private void callReservation(ObjectOutputStream oos, ReservationMessage reservationMessage, String userName) throws IOException {
-        // Munkalap létrehozása, ha még nincs létrehozva
-        if (!reservationMessage.isCreated()) {
-            reservationMessage.setTransactionID(warehouse.CreateWorkSheet(reservationMessage.getWorkSheetType()));
-            reservationMessage.setCreated();
-            oos.writeObject(reservationMessage);
-            System.out.println(userName + " új munkalapot hozott létre - transactionID: " + reservationMessage.getTransactionID());
-        }
-        // Foglalás jóváhagyása
-        else {
-            reservationMessage = warehouse.ApproveWorkSheet(reservationMessage, accounting);
-            oos.writeObject(reservationMessage);
-            System.out.println(userName + " munkalapot küldött jóváhagyásra - transactionID: " + reservationMessage.getTransactionID());
-        }
-}
-
-    // Beérkezés
-    private void callReceiving(ObjectOutputStream oos, ReceivingMessage receivingMessage, String userName) throws IOException {
-        // Munkalap aktiválása, ha még nem aktív
-        if (!receivingMessage.isApproved()){
-            receivingMessage = warehouse.ActivateWorkSheet(receivingMessage);
-            oos.writeObject(receivingMessage);
-            System.out.println(userName + " munkalapot küldött aktiválásra - transactionID: " + receivingMessage.getTransactionID());
-        }
-        // Beérkeztetés indítása
-        else if (!receivingMessage.isUnloaded()){
-            receivingMessage = warehouse.ProcessWorkSheet(receivingMessage);
-            oos.writeObject(receivingMessage);
-            System.out.println(userName + " munkalapot küldött végrehajtásra - transactionID: " + receivingMessage.getTransactionID());
-        } else {
-        // Beérkezés visszaigazolása, és lezárása
-            receivingMessage = warehouse.CompleteWorkSheet(receivingMessage, accounting);
-            oos.writeObject(receivingMessage);
-            System.out.println(userName + " munkalapot küldött lezárásra - transactionID: " + receivingMessage.getTransactionID());
-        }
-    }
-
-    private void callUnloading(ObjectOutputStream oos, UnloadingMessage unloadingMessage, String userName) throws IOException {
-        unloadingMessage = warehouse.UnloadWorkSheet(unloadingMessage);
-        oos.writeObject(unloadingMessage);
-        System.out.println(userName + " munkalapot küldött kirakodásra - transactionID: " + unloadingMessage.getTransactionID());
     }
 
     // Szerver teszt

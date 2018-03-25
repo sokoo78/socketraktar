@@ -18,6 +18,7 @@ public class Worksheet implements Serializable {
 
     // Állapotjelzők
     private boolean isInitialized = false;  // Van már tranzakcióazonosítója
+    private boolean isRejected = false;     // Nem teljesíthető az igény
     private boolean isApproved = false;     // Teljesíthető az igény
     private boolean isActive = false;       // Kocsi beérkezett
     private boolean isProcessing = false;   // Rakodás folyamatban
@@ -58,8 +59,9 @@ public class Worksheet implements Serializable {
     // Getterek, Setterek
 
     public String getStatus(){
-        String status                  = "Eldobott    ";
+        String status                  = "Elutasítva  ";
         if (this.isInitialized) status = "Létrehozva  ";
+        if (this.isRejected) status    = "Elutasítva  ";
         if (this.isApproved) status    = "Elfogadva   ";
         if (this.isActive) status      = "Aktív       ";
         if (this.isProcessing) status  = "Folyamatban ";
@@ -80,6 +82,22 @@ public class Worksheet implements Serializable {
         return workSheetType;
     }
 
+    public boolean isInitialized() {
+        return isInitialized;
+    }
+
+    public void setInitialized() {
+        isInitialized = true;
+    }
+
+    public boolean isRejected() {
+        return isRejected;
+    }
+
+    public void setRejected() {
+        isRejected = true;
+    }
+
     public boolean isApproved() {
         return isApproved;
     }
@@ -94,14 +112,6 @@ public class Worksheet implements Serializable {
 
     public void setActive() {
         isActive = true;
-    }
-
-    public boolean isInitialized() {
-        return isInitialized;
-    }
-
-    public void setInitialized() {
-        isInitialized = true;
     }
 
     public String getRenterID() {

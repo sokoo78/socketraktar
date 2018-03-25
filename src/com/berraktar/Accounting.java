@@ -1,6 +1,7 @@
 package com.berraktar;
 
-import java.io.*;
+import java.io.File;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,39 +34,7 @@ class Accounting implements Serializable {
         Persistency.SaveObject(this.getRenters(), "Renters.ser");
     }
 
-    private synchronized static void GetReport(ObjectOutputStream oos, ObjectInputStream ois, ReportMessage.ReportType reportType) throws IOException, ClassNotFoundException {
-        ReportMessage reportMessage = new ReportMessage(reportType);
-        oos.writeObject(reportMessage);
-        reportMessage = (ReportMessage) ois.readObject();
-        System.out.println(reportMessage.getReply());
-    }
-
-    public synchronized int getTotalCooledReservations(){
-        return renters.values().stream().mapToInt(i -> i.getRentedCooledLocations()).sum();
-    }
-
-    public synchronized int getTotalNormalReservations(){
-        return renters.values().stream().mapToInt(i -> i.getRentedNormalLocations()).sum();
-    }
-
-    public synchronized void addLogisticsOperations (String renterID, int numberOfOperations){
-        this.getRenter(renterID).addLogisticsOperations(numberOfOperations);
-        saveAccountingState();
-    }
-
-    public synchronized Renter getRenter(String renterID){
-        return this.renters.get(renterID);
-    }
-
-    public synchronized Map<String, Renter> getRenters() {
-        return this.renters;
-    }
-
-    private synchronized void setRenters(Map<String, Renter> renters) {
-        this.renters = renters;
-    }
-
-    // Teszt bérlők
+    // Teszt bérlők létrehozása
     private synchronized void createTestRenters(){
         Renter renter_1 = new Renter(
                 "Bérlő Béla",
@@ -100,4 +69,32 @@ class Accounting implements Serializable {
         testRenters.put(renter_3.getCode(), renter_3);
         this.setRenters(testRenters);
     }
+
+    // Getterek, setterek
+
+    public synchronized int getTotalCooledReservations(){
+        return renters.values().stream().mapToInt(i -> i.getRentedCooledLocations()).sum();
+    }
+
+    public synchronized int getTotalNormalReservations(){
+        return renters.values().stream().mapToInt(i -> i.getRentedNormalLocations()).sum();
+    }
+
+    public synchronized void addLogisticsOperations (String renterID, int numberOfOperations){
+        this.getRenter(renterID).addLogisticsOperations(numberOfOperations);
+        saveAccountingState();
+    }
+
+    public synchronized Renter getRenter(String renterID){
+        return this.renters.get(renterID);
+    }
+
+    public synchronized Map<String, Renter> getRenters() {
+        return this.renters;
+    }
+
+    private synchronized void setRenters(Map<String, Renter> renters) {
+        this.renters = renters;
+    }
+
 }

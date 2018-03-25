@@ -9,6 +9,12 @@ class ReceivingMessage implements Serializable {
     //Szerializációhoz kell
     private static final long serialVersionUID = 7239227608233814602L;
 
+    // Jelentés típusok
+    public enum TransactionType {Approve, Process, Unload, Confirm, Complete}
+
+    // Jelentés tulajdonságai
+    private TransactionType transactionType;
+
     // Aktiváláshoz szükséges adatok
     private int transactionID;
     private String transactionMessage;
@@ -42,6 +48,14 @@ class ReceivingMessage implements Serializable {
 
     public int getTransactionID() {
         return transactionID;
+    }
+
+    public TransactionType getTransactionType() {
+        return transactionType;
+    }
+
+    public void setTransactionType(TransactionType transactionType) {
+        this.transactionType = transactionType;
     }
 
     public LocalDateTime getReceivingDate() {

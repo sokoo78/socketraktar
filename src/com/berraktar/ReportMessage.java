@@ -14,7 +14,7 @@ public class ReportMessage implements Serializable {
     private String reply;
 
     // Konstruktor
-    public ReportMessage(ReportType reportType) {
+    ReportMessage(ReportType reportType) {
         this.reportType = reportType;
     }
 
