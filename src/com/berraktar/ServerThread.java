@@ -39,36 +39,14 @@ class ServerThread extends Thread {
 
             // Beérkező objektumok feldolgozása
             while ((object = objectInputStream.readObject()) != null){
-
-                // Create típusú üzenet feldolgozása
-                if (object instanceof CreateWorkMessage) {
-                    callCreate(objectOutputStream, (CreateWorkMessage)object, employee.getName());
-                }
-
-                // Reservation típusú üzenet feldolgozása
-                if (object instanceof ReservationMessage) {
-                    callReserve(objectOutputStream, (ReservationMessage)object, employee.getName());
-                }
-
-                // ReceivingMessage típusú üzenet feldolgozása
-                if (object instanceof ReceivingMessage) {
-                    callReceiving(objectOutputStream, (ReceivingMessage)object, employee.getName());
-                }
-
-                // UnloadingMessage típusú üzenet feldolgozása
-                if (object instanceof UnloadingMessage) {
-                    callUnloading(objectOutputStream, (UnloadingMessage)object, employee.getName());
-                }
-
-                // ServerTest típusú üzenet feldolgozása
-                if (object instanceof ServerTest) {
-                    callServerTest(objectOutputStream, (ServerTest)object, employee.getName());
-                }
-
-                // ReportMessage típusú üzenet feldolgozása
-                if (object instanceof ReportMessage) {
-                    callReport(objectOutputStream, (ReportMessage)object, employee.getName());
-                }
+                if (object instanceof MessageCreate)    callCreate(objectOutputStream, (MessageCreate) object, employee.getName());
+                if (object instanceof MessageReserve)   callReserve(objectOutputStream, (MessageReserve) object, employee.getName());
+                if (object instanceof MessageActivate)  callActivate(objectOutputStream, (MessageActivate) object, employee.getName());
+                if (object instanceof MessageProcess)   callProcess(objectOutputStream, (MessageProcess) object, employee.getName());
+                if (object instanceof MessageUnload)    callUnload(objectOutputStream, (MessageUnload) object, employee.getName());
+                if (object instanceof MessageComplete)  callComplete(objectOutputStream, (MessageComplete) object, employee.getName());
+                if (object instanceof ServerTest)       callServerTest(objectOutputStream, (ServerTest) object, employee.getName());
+                if (object instanceof MessageReport)    callReport(objectOutputStream, (MessageReport) object, employee.getName());
             }
 
             // Zárjuk a kapcsolatot
@@ -81,69 +59,69 @@ class ServerThread extends Thread {
     }
 
     // Új munkalap
-    private void callCreate(ObjectOutputStream oos, CreateWorkMessage createWorkMessage, String userName) throws IOException {
-        createWorkMessage.setTransactionID(WorkOrders.CreateWorkSheet(createWorkMessage));
-        oos.writeObject(createWorkMessage);
-        System.out.println(userName + " új munkalapot hozott létre - transactionID: " + createWorkMessage.getTransactionID());
+    private void callCreate(ObjectOutputStream oos, MessageCreate messageCreate, String userName) throws IOException {
+        messageCreate.setTransactionID(WorkOrders.CreateWorkSheet(messageCreate));
+        oos.writeObject(messageCreate);
+        System.out.println(userName + " új munkalapot hozott létre - transactionID: " + messageCreate.getTransactionID());
     }
 
     // Új foglalás
-    private void callReserve(ObjectOutputStream oos, ReservationMessage reservationMessage, String userName) throws IOException {
-        reservationMessage = warehouse.DoReservation(reservationMessage, accounting);
-        oos.writeObject(reservationMessage);
-        System.out.println(userName + " munkalapot küldött jóváhagyásra - transactionID: " + reservationMessage.getTransactionID());
+    private void callReserve(ObjectOutputStream oos, MessageReserve messageReserve, String userName) throws IOException {
+        messageReserve = warehouse.DoReservation(messageReserve, accounting);
+        oos.writeObject(messageReserve);
+        System.out.println(userName + " munkalapot küldött jóváhagyásra - transactionID: " + messageReserve.getTransactionID());
     }
 
-    // Beérkezés
-    private void callReceiving(ObjectOutputStream oos, ReceivingMessage receivingMessage, String userName) throws IOException {
-        // Munkalap aktiválása, ha még nem aktív
-        if (!receivingMessage.isApproved()){
-            receivingMessage = WorkOrders.ActivateWorkSheet(receivingMessage);
-            oos.writeObject(receivingMessage);
-            System.out.println(userName + " munkalapot küldött aktiválásra - transactionID: " + receivingMessage.getTransactionID());
-        }
-        // Beérkeztetés indítása
-        else if (!receivingMessage.isUnloaded()){
-            receivingMessage = WorkOrders.ProcessWorkSheet(receivingMessage);
-            oos.writeObject(receivingMessage);
-            System.out.println(userName + " munkalapot küldött végrehajtásra - transactionID: " + receivingMessage.getTransactionID());
-        } else {
-        // Beérkezés visszaigazolása, és lezárása
-            receivingMessage = warehouse.DoStoring(receivingMessage, accounting);
-            oos.writeObject(receivingMessage);
-            System.out.println(userName + " munkalapot küldött lezárásra - transactionID: " + receivingMessage.getTransactionID());
-        }
+    // Munkalap aktiválása
+    private void callActivate(ObjectOutputStream oos, MessageActivate messageActivate, String userName) throws IOException {
+        messageActivate = WorkOrders.ActivateWorkSheet(messageActivate);
+        oos.writeObject(messageActivate);
+        System.out.println(userName + " munkalapot küldött aktiválásra - transactionID: " + messageActivate.getTransactionID());
     }
 
-    // Betárolás
-    private void callUnloading(ObjectOutputStream oos, UnloadingMessage unloadingMessage, String userName) throws IOException {
-        unloadingMessage = warehouse.DoUnloading(unloadingMessage);
-        oos.writeObject(unloadingMessage);
-        System.out.println(userName + " munkalapot küldött kirakodásra - transactionID: " + unloadingMessage.getTransactionID());
+    // Beérkeztetés
+    private void callProcess(ObjectOutputStream oos, MessageProcess messageProcess, String userName) throws IOException {
+        messageProcess = WorkOrders.ProcessWorkSheet(messageProcess);
+        oos.writeObject(messageProcess);
+        System.out.println(userName + " munkalapot küldött végrehajtásra - transactionID: " + messageProcess.getTransactionID());
+    }
+
+    // Kirakodás a terminálra
+    private void callUnload(ObjectOutputStream oos, MessageUnload messageUnload, String userName) throws IOException {
+        messageUnload = warehouse.DoUnloading(messageUnload);
+        oos.writeObject(messageUnload);
+        System.out.println(userName + " munkalapot küldött kirakodásra - transactionID: " + messageUnload.getTransactionID());
+    }
+
+    // Berakodás a raktárba
+    private void callComplete(ObjectOutputStream oos, MessageComplete messageComplete, String userName) throws IOException {
+        messageComplete = warehouse.DoStoring(messageComplete, accounting);
+        oos.writeObject(messageComplete);
+        System.out.println(userName + " munkalapot küldött lezárásra - transactionID: " + messageComplete.getTransactionID());
     }
 
     // Jelentések
-    private void callReport(ObjectOutputStream oos, ReportMessage reportMessage, String userName) throws IOException {
-        switch (reportMessage.getReportType()){
+    private void callReport(ObjectOutputStream oos, MessageReport messageReport, String userName) throws IOException {
+        switch (messageReport.getReportType()){
             case Renters:
-                reportMessage = Reporting.RenterReport(reportMessage, accounting.getRenters());
-                oos.writeObject(reportMessage);
-                System.out.println(userName + " jelentést kért: " + reportMessage.getReportType());
+                messageReport = Reporting.RenterReport(messageReport, accounting.getRenters());
+                oos.writeObject(messageReport);
+                System.out.println(userName + " jelentést kért: " + messageReport.getReportType());
                 break;
             case Worksheets:
-                reportMessage = Reporting.WorksheetReport(reportMessage, WorkOrders.getWorksheets());
-                oos.writeObject(reportMessage);
-                System.out.println(userName + " jelentést kért: " + reportMessage.getReportType());
+                messageReport = Reporting.WorksheetReport(messageReport, WorkOrders.getWorksheets());
+                oos.writeObject(messageReport);
+                System.out.println(userName + " jelentést kért: " + messageReport.getReportType());
                 break;
             case Locations:
-                reportMessage = Reporting.LocationReport(reportMessage, warehouse);
-                oos.writeObject(reportMessage);
-                System.out.println(userName + " jelentést kért: " + reportMessage.getReportType());
+                messageReport = Reporting.LocationReport(messageReport, warehouse);
+                oos.writeObject(messageReport);
+                System.out.println(userName + " jelentést kért: " + messageReport.getReportType());
                 break;
             case Terminals:
-                reportMessage = Reporting.TerminalReport(reportMessage, warehouse);
-                oos.writeObject(reportMessage);
-                System.out.println(userName + " jelentést kért: " + reportMessage.getReportType());
+                messageReport = Reporting.TerminalReport(messageReport, warehouse);
+                oos.writeObject(messageReport);
+                System.out.println(userName + " jelentést kért: " + messageReport.getReportType());
                 break;
             case Receivings:
                 break;

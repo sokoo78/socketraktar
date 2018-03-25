@@ -9,7 +9,19 @@ public class Message implements Serializable {
 
     // Tranzakciók közös tulajdonságai
     private int transactionID;
+    private String transactionMessage;
     private boolean isApproved;
+
+    // Konstruktorok
+    Message(int transactionID) {
+        this.transactionID = transactionID;
+    }
+
+    Message() {
+
+    }
+
+    // Getterek, setterek
 
     public void setTransactionID(int transactionID) {
         this.transactionID = transactionID;
@@ -27,4 +39,11 @@ public class Message implements Serializable {
         isApproved = true;
     }
 
+    public String getTransactionMessage() {
+        return transactionMessage;
+    }
+
+    public void setTransactionMessage(String transactionMessage) {
+        this.transactionMessage = transactionMessage;
+    }
 }

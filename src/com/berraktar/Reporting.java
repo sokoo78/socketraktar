@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class Reporting {
 
     // Bérlők jelentés
-    public static synchronized ReportMessage RenterReport(ReportMessage reportMessage, Map<String, Renter> renters) {
+    public static synchronized MessageReport RenterReport(MessageReport messageReport, Map<String, Renter> renters) {
         StringBuilder reply = new StringBuilder();
 
         // Fejléc
@@ -26,12 +26,12 @@ public final class Reporting {
         }
 
         // Jelentés mentése az üzenetbe
-        reportMessage.setReply(reply.toString());
-        return reportMessage;
+        messageReport.setReply(reply.toString());
+        return messageReport;
     }
 
     // Munkalapok jelentés
-    public static synchronized ReportMessage WorksheetReport(ReportMessage reportMessage, ConcurrentHashMap<Integer, Worksheet> worksheets) {
+    public static synchronized MessageReport WorksheetReport(MessageReport messageReport, ConcurrentHashMap<Integer, Worksheet> worksheets) {
         StringBuilder reply = new StringBuilder();
         DateTimeFormatter date = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         DateTimeFormatter time = DateTimeFormatter.ofPattern("HH:mm");
@@ -61,12 +61,12 @@ public final class Reporting {
         }
 
         // Jelentés mentése az üzenetbe
-        reportMessage.setReply(reply.toString());
-        return reportMessage;
+        messageReport.setReply(reply.toString());
+        return messageReport;
     }
 
     // Lokáció jelentés
-    public static synchronized ReportMessage LocationReport(ReportMessage reportMessage, Warehouse warehouse) {
+    public static synchronized MessageReport LocationReport(MessageReport messageReport, Warehouse warehouse) {
         StringBuilder reply = new StringBuilder();
         Map<Integer,Location> normalLocations = warehouse.getNormalLocations();
         Map<Integer,Location> cooledLocations = warehouse.getCooledLocations();
@@ -90,8 +90,8 @@ public final class Reporting {
         getLocationList(reply, cooledLocations);
 
         // Válasz mentése a jelentésbe
-        reportMessage.setReply(reply.toString());
-        return reportMessage;
+        messageReport.setReply(reply.toString());
+        return messageReport;
     }
 
     // Lokáció lista lokáció jelentéshez
@@ -108,7 +108,7 @@ public final class Reporting {
     }
 
     // Terminál foglalások jelentés
-    public static synchronized ReportMessage TerminalReport(ReportMessage reportMessage, Warehouse warehouse) {
+    public static synchronized MessageReport TerminalReport(MessageReport messageReport, Warehouse warehouse) {
         StringBuilder reply = new StringBuilder();
 
         // Fejléc
@@ -130,8 +130,8 @@ public final class Reporting {
         getTerminalList(reply, warehouse.getReservedCooledTerminals());
 
         // Válasz mentése a jelentésbe
-        reportMessage.setReply(reply.toString());
-        return reportMessage;
+        messageReport.setReply(reply.toString());
+        return messageReport;
     }
 
     // Terminál lista terminál jelentéshez

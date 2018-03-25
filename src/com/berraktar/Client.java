@@ -110,16 +110,16 @@ public class Client {
             while(!input.equals("5")){
                 switch(input){
                     case "1":
-                        GetReport(oos, ois, ReportMessage.ReportType.Renters);
+                        GetReport(oos, ois, MessageReport.ReportType.Renters);
                         break;
                     case "2":
-                        GetReport(oos, ois, ReportMessage.ReportType.Worksheets);
+                        GetReport(oos, ois, MessageReport.ReportType.Worksheets);
                         break;
                     case "3":
-                        GetReport(oos, ois, ReportMessage.ReportType.Locations);
+                        GetReport(oos, ois, MessageReport.ReportType.Locations);
                         break;
                     case "4":
-                        GetReport(oos, ois, ReportMessage.ReportType.Terminals);
+                        GetReport(oos, ois, MessageReport.ReportType.Terminals);
                         break;
                     default:
                         System.out.println("A megadott menüpont nem létezik! (" + input + ")");
@@ -151,13 +151,13 @@ public class Client {
             while(!input.equals("5")){
                 switch(input){
                     case "1":
-                        SystemTests.doNewReservationTest(oos, ois);
+                        SystemTests.doReservationTest(oos, ois);
                         break;
                     case "2":
-                        SystemTests.doReceivingTest(oos, ois);
+                        SystemTests.doActivationTest(oos, ois);
                         break;
                     case "3":
-                        SystemTests.doIncomingTest(oos, ois);
+                        SystemTests.doProcessingTest(oos, ois);
                         break;
                     case "4":
                         SystemTests.doServerTest(oos, ois);
@@ -179,11 +179,12 @@ public class Client {
         }
     }
 
-    private static void GetReport(ObjectOutputStream oos, ObjectInputStream ois, ReportMessage.ReportType reportType) throws IOException, ClassNotFoundException {
-        ReportMessage reportMessage = new ReportMessage(reportType);
-        oos.writeObject(reportMessage);
-        reportMessage = (ReportMessage) ois.readObject();
-        System.out.println(reportMessage.getReply());
+    // Jelentések
+    private static void GetReport(ObjectOutputStream oos, ObjectInputStream ois, MessageReport.ReportType reportType) throws IOException, ClassNotFoundException {
+        MessageReport messageReport = new MessageReport(reportType);
+        oos.writeObject(messageReport);
+        messageReport = (MessageReport) ois.readObject();
+        System.out.println(messageReport.getReply());
     }
 
     // TODO: Buta login, ellenőrzést és visszatérést betenni

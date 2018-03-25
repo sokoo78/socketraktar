@@ -3,6 +3,7 @@ package com.berraktar;
 import java.io.*;
 
 public class Storekeeper extends Employee {
+
     // Szerializációhoz kell
     private static final long serialVersionUID = 3980978824897032892L;
 
@@ -17,54 +18,57 @@ public class Storekeeper extends Employee {
 
         // Munkalap adatok lekérése a szerverről
         System.out.print("Tranzakció azonosító: "); // Munkalap sorszáma
-        ReceivingMessage receivingMessage = new ReceivingMessage(Integer.parseInt(br.readLine()));
-        receivingMessage.setApproved();
-        oos.writeObject(receivingMessage);
-        receivingMessage = (ReceivingMessage)ois.readObject();
-        if (receivingMessage.isProcessing()){
+        MessageProcess messageProcess = new MessageProcess(Integer.parseInt(br.readLine()));
+        oos.writeObject(messageProcess);
+        messageProcess = (MessageProcess)ois.readObject();
+        if (messageProcess.isApproved()){
             System.out.print("Beszállítás rendben - munkalap folyamatban!");
         } else {
             System.out.print("Beszállítási adatok elutasítva!");
-            System.out.print("\nSzerver üzenete: " + receivingMessage.getTransactionMessage());
+            System.out.print("\nSzerver üzenete: " + messageProcess.getTransactionMessage());
+            return;
         }
 
         // Paletták szkennelése és kipakolása
-        for (int i = 0; i < receivingMessage.getPallets(); i++) {
+        for (int i = 0; i < messageProcess.getPallets(); i++) {
             System.out.print("Szkenneld be az " + i + ". palettát (Bérlő cikkszáma: " +
-                    receivingMessage.getExternalPartNumber() + "): ");
+                    messageProcess.getExternalPartNumber() + "): ");
             String scannedPartNumber = br.readLine();
-            while (scannedPartNumber != receivingMessage.getExternalPartNumber()) {
+            while (scannedPartNumber.equals(messageProcess.getExternalPartNumber())) {
                 System.out.println("A beszkennelt cikkszám nem egyezik a foglaláson szereplő cikkszámmal!");
                 System.out.print("Szkenneld be az " + i + ". palettát (Bérlő cikkszáma: " +
-                        receivingMessage.getExternalPartNumber() + "): ");
+                        messageProcess.getExternalPartNumber() + "): ");
                 scannedPartNumber = br.readLine();
             }
-            receivingMessage.setInternalPartNumber(generateInternalPartNumber(receivingMessage));
+            messageProcess.setInternalPartNumber(generateInternalPartNumber(messageProcess));
 
             // Paletta lejelentése a szervernek
-            UnloadingMessage unloadingMessage = new UnloadingMessage(receivingMessage.getTransactionID(), receivingMessage.getInternalPartNumber());
-            oos.writeObject(unloadingMessage);
-            unloadingMessage = (UnloadingMessage)ois.readObject();
-            if (unloadingMessage.isConfirmed()){
-                System.out.print("Paletta sikeresen kirakva a " + receivingMessage.getTerminalID() + " terminálra!");
+            MessageUnload messageUnload = new MessageUnload(messageProcess.getTransactionID(), messageProcess.getInternalPartNumber());
+            oos.writeObject(messageUnload);
+            messageUnload = (MessageUnload)ois.readObject();
+            if (messageUnload.isApproved()){
+                System.out.print("Paletta sikeresen kirakva a " + messageProcess.getTerminalID() + " terminálra!");
             } else {
                 System.out.print("Paletta kirakás elutasítva!");
-                System.out.print("\nSzerver üzenete: " + receivingMessage.getTransactionMessage());
+                System.out.print("\nSzerver üzenete: " + messageUnload.getTransactionMessage());
+                return;
             }
         }
 
         // Munkalap lejelentése a szervernek
-        System.out.print("Tranzakció készrejelentése (i/n): "); // Munkalap sorszáma
+        System.out.print("Tranzakció készrejelentése (i/n): ");
         boolean isConfirmed = UserIO.readBoolean();
         if (isConfirmed){
-            receivingMessage.setUnloaded();
-            oos.writeObject(receivingMessage);
-            receivingMessage = (ReceivingMessage)ois.readObject();
-            if (receivingMessage.isCompleted()){
+            MessageComplete messageComplete = new MessageComplete(messageProcess.getTransactionID());
+            messageComplete.setRenterID(messageProcess.getRenterID());
+            messageComplete.setInternalPartNumber(messageProcess.getInternalPartNumber());
+            oos.writeObject(messageComplete);
+            messageComplete = (MessageComplete)ois.readObject();
+            if (messageComplete.isApproved()){
                 System.out.print("Beszállítás rendben - munkalap lezárva!");
             } else {
                 System.out.print("Beszállítás lejelentése elutasítva!");
-                System.out.print("\nSzerver üzenete: " + receivingMessage.getTransactionMessage());
+                System.out.print("\nSzerver üzenete: " + messageComplete.getTransactionMessage());
             }
         }
     }
@@ -75,7 +79,7 @@ public class Storekeeper extends Employee {
     }
 
     // Belső cikkszám generálás - vevőkódot hozzáadja prefixumként, lehet szofisztikálni ha kell..
-    static String generateInternalPartNumber(ReceivingMessage receivingMessage) {
-        return receivingMessage.getRenterID() + "-" + receivingMessage.getExternalPartNumber();
+    static String generateInternalPartNumber(MessageProcess messageProcess) {
+        return messageProcess.getRenterID() + "-" + messageProcess.getExternalPartNumber();
     }
 }

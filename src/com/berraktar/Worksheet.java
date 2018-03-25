@@ -48,6 +48,7 @@ public class Worksheet implements Serializable {
     // Paletta kipakolás
     public Pallet takePallet () {
         Pallet pallet = new Pallet(this.getRenterID(), this.getExternalPartNumber());
+        System.out.println("\n" +  this.numberOfPallets + " fos " + this.unloadedPallets + "\n");
         if (this.unloadedPallets < this.numberOfPallets){
             unloadedPallets++;
         } else {
@@ -82,16 +83,8 @@ public class Worksheet implements Serializable {
         return workSheetType;
     }
 
-    public boolean isInitialized() {
-        return isInitialized;
-    }
-
     public void setInitialized() {
         isInitialized = true;
-    }
-
-    public boolean isRejected() {
-        return isRejected;
     }
 
     public void setRejected() {
@@ -142,10 +135,6 @@ public class Worksheet implements Serializable {
         return isCooled;
     }
 
-    public void setCooled() {
-        isCooled = true;
-    }
-
     public void updateCooled(boolean isCooled) {
         this.isCooled = isCooled;
     }
@@ -158,16 +147,8 @@ public class Worksheet implements Serializable {
         this.numberOfPallets = numberOfPallets;
     }
 
-    public boolean isCompleted() {
-        return isCompleted;
-    }
-
     public void setConfirmed() {
         isCompleted = true;
-    }
-
-    public boolean isCancelled() {
-        return isCancelled;
     }
 
     public void setCancelled() {
@@ -200,10 +181,6 @@ public class Worksheet implements Serializable {
 
     public void setProcessing() {
         this.isProcessing = true;
-    }
-
-    public int getUnloadedPallets() {
-        return unloadedPallets;
     }
 
 }

@@ -41,10 +41,10 @@ public final class WorkOrders implements Serializable {
 }
 
     // Új munkalap létrehozása
-    public static synchronized int CreateWorkSheet(CreateWorkMessage createWorkMessage) {
+    public static synchronized int CreateWorkSheet(MessageCreate messageCreate) {
         Integer newID = workCounter.incrementAndGet();
         Worksheet worksheet;
-        if (createWorkMessage.isIncoming()){
+        if (messageCreate.isIncoming()){
             worksheet = new Worksheet(Worksheet.WorkSheetType.Incoming);
         } else {
             worksheet = new Worksheet(Worksheet.WorkSheetType.Outgoing);
@@ -57,28 +57,28 @@ public final class WorkOrders implements Serializable {
     }
 
     // Munkalap aktiválása
-    public static synchronized ReceivingMessage ActivateWorkSheet(ReceivingMessage receivingMessage) {
-        Worksheet worksheet = worksheets.get(receivingMessage.getTransactionID());
+    public static synchronized MessageActivate ActivateWorkSheet(MessageActivate messageActivate) {
+        Worksheet worksheet = worksheets.get(messageActivate.getTransactionID());
 
         // Elutasítás: Nem létezik a munkalap
         if (worksheet == null){
-            receivingMessage.setTransactionMessage("Ezen a számon nincs foglalás a rendszerben!");
-            return receivingMessage;
+            messageActivate.setTransactionMessage("Ezen a számon nincs foglalás a rendszerben!");
+            return messageActivate;
         }
 
         // Elutasítás: Már aktiválva van
         if (worksheet.isActive()) {
-            receivingMessage.setTransactionMessage("Ez a munkalap már aktív!");
-            return receivingMessage;
+            messageActivate.setTransactionMessage("Ez a munkalap már aktív!");
+            return messageActivate;
         }
 
         // Elutasítás: nem megfelelő érkezési dátum
-        if (!UserIO.DateisInRange(worksheet.getReservedDate(), worksheet.getReservedDate().plusMinutes(30), receivingMessage.getReceivingDate())) {
-            receivingMessage.setTransactionMessage("Nem megfelelő érkezési dátum: " +
+        if (!UserIO.DateisInRange(worksheet.getReservedDate(), worksheet.getReservedDate().plusMinutes(30), messageActivate.getReceivingDate())) {
+            messageActivate.setTransactionMessage("Nem megfelelő érkezési dátum: " +
                     UserIO.printDate(worksheet.getReservedDate()) + "-" +
                     worksheet.getReservedDate().getHour() + ":" + worksheet.getReservedDate().plusMinutes(30).getMinute() +
-                    " helyett " + UserIO.printDate(receivingMessage.getReceivingDate()));
-            return receivingMessage;
+                    " helyett " + UserIO.printDate(messageActivate.getReceivingDate()));
+            return messageActivate;
         }
 
         // Jóváhagyás
@@ -88,25 +88,25 @@ public final class WorkOrders implements Serializable {
         WorkOrders.saveWorkOrdersState();
 
         // Visszaigazolás
-        receivingMessage.setApproved();
-        return receivingMessage;
+        messageActivate.setApproved();
+        return messageActivate;
     }
 
     // Munkalap végrehajtásának indítása
-    public static synchronized ReceivingMessage ProcessWorkSheet(ReceivingMessage receivingMessage) {
-        Worksheet worksheet = worksheets.get(receivingMessage.getTransactionID());
+    public static synchronized MessageProcess ProcessWorkSheet(MessageProcess messageProcess) {
+        Worksheet worksheet = worksheets.get(messageProcess.getTransactionID());
 
         // Létezik a munkalap?
         if (worksheet == null) {
-            receivingMessage.setTransactionMessage("Ezen a számon nincs foglalás a rendszerben!");
-            return receivingMessage;
+            messageProcess.setTransactionMessage("Ezen a számon nincs foglalás a rendszerben!");
+            return messageProcess;
         }
 
         // Beérkeztetéshez szükséges adatok kitöltése
-        receivingMessage.setRenterID(worksheet.getRenterID());
-        receivingMessage.setPallets(worksheet.getNumberOfPallets());
-        receivingMessage.setExternalPartNumber(worksheet.getExternalPartNumber());
-        receivingMessage.setTerminalID(worksheet.getTerminalID());
+        messageProcess.setRenterID(worksheet.getRenterID());
+        messageProcess.setPallets(worksheet.getNumberOfPallets());
+        messageProcess.setExternalPartNumber(worksheet.getExternalPartNumber());
+        messageProcess.setTerminalID(worksheet.getTerminalID());
 
         // Jóváhagyás
         worksheet.setProcessing();
@@ -115,8 +115,8 @@ public final class WorkOrders implements Serializable {
         WorkOrders.saveWorkOrdersState();
 
         // Visszaigazolás
-        receivingMessage.setProcessing();
-        return receivingMessage;
+        messageProcess.setApproved();
+        return messageProcess;
     }
 
     // Getterek, setterek

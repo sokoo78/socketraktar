@@ -10,11 +10,6 @@ public class Employee implements Serializable {
     // Dolgozó típusok
     public enum UserType {Dispatcher, Storekeeper, Reports, Tests}
 
-    // Tranzakció flagek
-    public enum TransactionType {Login, Logout}
-    // Login: Bejelentkezési adatok ellenőrzése - szerver isLoggedin flaggel tér vissza
-    // Logout: Kijelentkezés
-
     // Állapotjelzők
     private boolean isLoggedin = false;
 
@@ -23,16 +18,10 @@ public class Employee implements Serializable {
     private UserType position;
     private String password;
 
-    // Konstruktor (super)
-    public Employee(String name, UserType position) {
+    // Konstruktor
+    Employee(String name, UserType position) {
         this.name = name;
         this.position = position;
-    }
-
-    // Dolgozók közös metódusai
-
-    protected void showMenu(){
-        // TODO ehhez javítani kell az ojjektum létrehozást..
     }
 
     // Getterek, setterek

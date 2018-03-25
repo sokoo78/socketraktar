@@ -17,40 +17,40 @@ public class Dispatcher extends Employee implements Serializable {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
         // Új munkalap (tranzakció azonosító) kérelem
-        CreateWorkMessage createWorkMessage = new CreateWorkMessage();
-        createWorkMessage.setIncoming();
-        oos.writeObject(createWorkMessage);
-        createWorkMessage = (CreateWorkMessage) ois.readObject();
+        MessageCreate messageCreate = new MessageCreate();
+        messageCreate.setIncoming();
+        oos.writeObject(messageCreate);
+        messageCreate = (MessageCreate) ois.readObject();
 
         // Új foglalási kérelem
-        ReservationMessage reservationMessage = new ReservationMessage();
-        reservationMessage.setTransactionID(createWorkMessage.getTransactionID());
-        reservationMessage.setWorkSheetType(Worksheet.WorkSheetType.Incoming);
-        System.out.print("\nÚj munkalap létrehozva - Tranzakcióazonosító: " + createWorkMessage.getTransactionID());
+        MessageReserve messageReserve = new MessageReserve();
+        messageReserve.setTransactionID(messageCreate.getTransactionID());
+        messageReserve.setWorkSheetType(Worksheet.WorkSheetType.Incoming);
+        System.out.print("\nÚj munkalap létrehozva - Tranzakcióazonosító: " + messageCreate.getTransactionID());
 
         // Kérelem adatainak bekérése a munkalapra
         System.out.print("\nVevőkód: ");
-        reservationMessage.setRenterID(br.readLine());
+        messageReserve.setRenterID(br.readLine());
         System.out.print("Cikkszám: ");
-        reservationMessage.setPartNumber(br.readLine());
+        messageReserve.setPartNumber(br.readLine());
         System.out.print("Hűtött áru? (i/n): ");
-        reservationMessage.setCooled(UserIO.readBoolean());
+        messageReserve.setCooled(UserIO.readBoolean());
         System.out.print("Raklapok száma: ");
-        reservationMessage.setPallets(Integer.parseInt(br.readLine()));
+        messageReserve.setPallets(Integer.parseInt(br.readLine()));
         System.out.println("Foglalás időpontja (Példa: " + UserIO.printDate(LocalDateTime.now()) + "):");
-        reservationMessage.setReservationDate(UserIO.readDate(true));
-        System.out.print("Idő kerekítve: " + UserIO.printDate(reservationMessage.getReservationDate()));
+        messageReserve.setReservationDate(UserIO.readDate(true));
+        System.out.print("Idő kerekítve: " + UserIO.printDate(messageReserve.getReservationDate()));
 
         // Foglalás adatainak ellenőrzése, előfoglalás
         System.out.print("\nFoglalási adatok ellenőrzése.. ");
-        oos.writeObject(reservationMessage);
-        reservationMessage = (ReservationMessage) ois.readObject();
-        if (reservationMessage.isApproved()) {
+        oos.writeObject(messageReserve);
+        messageReserve = (MessageReserve) ois.readObject();
+        if (messageReserve.isApproved()) {
             System.out.print("Foglalási adatok elfogadva!");
         }
         else {
             System.out.print("Foglalási adatok elutasítva!");
-            System.out.print("\nSzerver üzenete: " + reservationMessage.getTransactionMessage());
+            System.out.print("\nSzerver üzenete: " + messageReserve.getTransactionMessage());
         }
 
         // TODO: Foglalás jóváhagyása, vagy törlése
@@ -64,14 +64,14 @@ public class Dispatcher extends Employee implements Serializable {
         int transactionID = Integer.parseInt(br.readLine());
         System.out.print("Beérkezés időpontja: ");          // TODO: a dátumot csak a teszt célból kell megadni, realtime működés esetén LocalDateTime.now() kell ide
         LocalDateTime receivingDate = UserIO.readDate(false);
-        ReceivingMessage receivingMessage = new ReceivingMessage(transactionID, receivingDate);
-        oos.writeObject(receivingMessage);
-        receivingMessage = (ReceivingMessage) ois.readObject();
-        if (receivingMessage.isApproved()){
+        MessageActivate messageActivate = new MessageActivate(transactionID, receivingDate);
+        oos.writeObject(messageActivate);
+        messageActivate = (MessageActivate) ois.readObject();
+        if (messageActivate.isApproved()){
             System.out.print("Beszállítási adatok elfogadva - munkalap aktiválva!");
         } else {
             System.out.print("Beszállítási adatok elutasítva!");
-            System.out.print("\nSzerver üzenete: " + receivingMessage.getTransactionMessage());
+            System.out.print("\nSzerver üzenete: " + messageActivate.getTransactionMessage());
         }
     }
 
