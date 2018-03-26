@@ -40,7 +40,7 @@ public final class SystemTests {
         testMessageReserves.add(new MessageReserve("GAPE", "NORM65110010", true,  1, dateTime));
 
         // Tesztek futtatása
-        for (int i = 0; i < testMessageReserves.size(); i++) {
+        for (MessageReserve testMessageReserve : testMessageReserves) {
 
             // Tranzakció azonosító kérés
             MessageCreate messageCreate = new MessageCreate();
@@ -49,9 +49,8 @@ public final class SystemTests {
             messageCreate = (MessageCreate) ois.readObject();
 
             // Foglalási kérelem
-            MessageReserve messageReserve = testMessageReserves.get(i);
+            MessageReserve messageReserve = testMessageReserve;
             messageReserve.setTransactionID(messageCreate.getTransactionID());
-            messageReserve.setWorkSheetType(Worksheet.WorkSheetType.Incoming);
             oos.writeObject(messageReserve);
             messageReserve = (MessageReserve) ois.readObject();
 
@@ -79,11 +78,10 @@ public final class SystemTests {
         testActivations.add(new MessageActivate(5,LocalDateTime.parse("2019-12-01 12:31", dateformat))); // Egy perccel később
 
         // Tesztek futtatása
-        for (int i = 0; i < testActivations.size(); i++) {
-            MessageActivate messageActivate = testActivations.get(i);
+        for (MessageActivate messageActivate : testActivations) {
             oos.writeObject(messageActivate);
             messageActivate = (MessageActivate) ois.readObject();
-            if (messageActivate.isApproved()){
+            if (messageActivate.isApproved()) {
                 System.out.print("\n" + messageActivate.getTransactionID() + " OK");
             } else {
                 System.out.print("\n" + messageActivate.getTransactionID() + " NOK: " + messageActivate.getTransactionMessage() + "\t");
@@ -130,6 +128,45 @@ public final class SystemTests {
             System.out.print("\nBevételezés OK");
         } else {
             System.out.print("\nBevételezés NOK - Szerver üzenete: " + messageComplete.getTransactionMessage());
+        }
+    }
+
+    // Rendelési teszt
+    public static void doOrderingTest(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+        System.out.println("\n Rendelési teszt\n");
+
+        // Teszt foglalási adatok
+        List<MessageOrder> testMessageOrders = new ArrayList<>();
+        DateTimeFormatter dateformat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        LocalDateTime dateTime = LocalDateTime.parse("2019-12-01 12:00", dateformat);
+
+        // Sikeres rendelés
+        testMessageOrders.add(new MessageOrder("BEBE", "CIKK75110001", 1, dateTime.plusDays(3)));
+
+        // Sikertelen rendelések
+        // 1. Bérlő nem létezik
+        testMessageOrders.add(new MessageOrder("NUKU", "CIKK75110001", 1, dateTime));
+        // 2. Nincs elég a kért cikkből
+        testMessageOrders.add(new MessageOrder("BEBE", "CIKK75110001", 2, dateTime));
+        // 3. Nincs a megadott időpontban szabad terminál - TODO ehhez még kell generálni ordereket
+        //testMessageOrders.add(new MessageOrder("BEBE", "CIKK75110001", 1, dateTime));
+
+        // Tesztek futtatása
+        for (MessageOrder testMessageOrder : testMessageOrders) {
+
+            // Tranzakció azonosító kérés
+            MessageCreate messageCreate = new MessageCreate();
+            oos.writeObject(messageCreate);
+            messageCreate = (MessageCreate) ois.readObject();
+
+            // Foglalási kérelem
+            MessageOrder messageOrder = testMessageOrder;
+            messageOrder.setTransactionID(messageCreate.getTransactionID());
+            oos.writeObject(messageOrder);
+            messageOrder = (MessageOrder) ois.readObject();
+
+            // Tömör kiírás
+            UserIO.printOrdering(messageOrder);
         }
     }
 

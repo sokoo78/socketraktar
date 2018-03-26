@@ -4,6 +4,7 @@ import java.io.*;
 import java.time.LocalDateTime;
 
 public class Dispatcher extends Employee implements Serializable {
+
     // Szerializációhoz kell
     private static final long serialVersionUID = -8829548734538973664L;
 
@@ -25,7 +26,6 @@ public class Dispatcher extends Employee implements Serializable {
         // Új foglalási kérelem
         MessageReserve messageReserve = new MessageReserve();
         messageReserve.setTransactionID(messageCreate.getTransactionID());
-        messageReserve.setWorkSheetType(Worksheet.WorkSheetType.Incoming);
         System.out.print("\nÚj munkalap létrehozva - Tranzakcióazonosító: " + messageCreate.getTransactionID());
 
         // Kérelem adatainak bekérése a munkalapra
@@ -57,7 +57,7 @@ public class Dispatcher extends Employee implements Serializable {
     }
 
     // Beszállítás (megérkezett a szállítmány)
-    static void doReceiving(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+    static void startReceiving(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         // Beérkezés adatainak bekérése
         System.out.print("Tranzakció azonosító: ");         // Munkalap sorszáma
@@ -75,14 +75,48 @@ public class Dispatcher extends Employee implements Serializable {
         }
     }
 
-    // TODO: Kifejtendő - Új Kiszállítás
-    static void newDelivery(ObjectOutputStream oos, ObjectInputStream ois) {
-        // TODO 1: adatokat felvenni
-        // TODO 2: szerverrel ellenőriztetni és jóváhagyatni (ehhez a szerver oldalnak is meg kell lennie)
+    // Új Kiszállítás
+    static void newDelivery(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+
+        // Új munkalap (tranzakció azonosító) kérelem
+        MessageCreate messageCreate = new MessageCreate();
+        oos.writeObject(messageCreate);
+        messageCreate = (MessageCreate) ois.readObject();
+
+        // Új rendelés (kiszállítási kérelem)
+        MessageOrder messageOrder = new MessageOrder();
+        messageOrder.setTransactionID(messageCreate.getTransactionID());
+        System.out.print("\nÚj munkalap létrehozva - Tranzakcióazonosító: " + messageCreate.getTransactionID());
+
+        // Rendelés adatainak bekérése
+        System.out.print("\nVevőkód: ");
+        messageOrder.setRenterID(br.readLine());
+        System.out.print("Cikkszám: ");
+        messageOrder.setPartNumber(br.readLine());
+        System.out.print("Raklapok száma: ");
+        messageOrder.setPallets(Integer.parseInt(br.readLine()));
+        System.out.println("Szállítás időpontja (Példa: " + UserIO.printDate(LocalDateTime.now()) + "):");
+        messageOrder.setReservationDate(UserIO.readDate(true));
+        System.out.print("Idő kerekítve: " + UserIO.printDate(messageOrder.getReservationDate()));
+
+        // Rendelés adatainak ellenőrzése, előfoglalás
+        System.out.print("\nSzállítási adatok ellenőrzése.. ");
+        oos.writeObject(messageOrder);
+        messageOrder = (MessageOrder) ois.readObject();
+        if (messageOrder.isApproved()) {
+            System.out.print("Szállítási adatok elfogadva!");
+        }
+        else {
+            System.out.print("Szállítási adatok elutasítva!");
+            System.out.print("\nSzerver üzenete: " + messageOrder.getTransactionMessage());
+        }
+
+        // TODO: Szállítás jóváhagyása, vagy törlése
     }
 
-    // TODO: Kifejtendő - Kiszállítás (kocsi beérkezett)
-    static void doDelivery(ObjectOutputStream oos, ObjectInputStream ois) {
+    // TODO: Kifejtendő - Kiszállítás (megérkezett a szállító)
+    static void startDelivery(ObjectOutputStream oos, ObjectInputStream ois) {
         // TODO 1: dátumot csekkolni - ha nem egyezik a foglalással akkor kuka
         // TODO 2: munkalapot aktiválni kell, hogy lássa a raktáros (raktáros kiszállítás funkció is kell)
     }

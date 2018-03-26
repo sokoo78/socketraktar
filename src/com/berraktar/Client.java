@@ -43,13 +43,13 @@ public class Client {
                         Dispatcher.newReservation(oos, ois);
                         break;
                     case "2":
-                        Dispatcher.doReceiving(oos, ois);
+                        Dispatcher.startReceiving(oos, ois);
                         break;
                     case "3":
                         Dispatcher.newDelivery(oos, ois);
                         break;
                     case "4":
-                        Dispatcher.doDelivery(oos, ois);
+                        Dispatcher.startDelivery(oos, ois);
                         break;
                     default:
                         System.out.println("A megadott menüpont nem létezik! (" + input + ")");
@@ -144,11 +144,12 @@ public class Client {
                     "1. Foglalás teszt\n\t" +
                     "2. Beérkezés teszt\n\t" +
                     "3. Bevételezés teszt\n\t" +
-                    "4. Szerver teszt\n\t" +
-                    "5. Kilépés\n" +
+                    "4. Rendelés teszt\n\t" +
+                    "5. Szerver teszt\n\t" +
+                    "6. Kilépés\n" +
                     "Válassz menüpontot: ");
             String input = br.readLine();
-            while(!input.equals("5")){
+            while(!input.equals("6")){
                 switch(input){
                     case "1":
                         SystemTests.doReservationTest(oos, ois);
@@ -160,6 +161,9 @@ public class Client {
                         SystemTests.doProcessingTest(oos, ois);
                         break;
                     case "4":
+                        SystemTests.doOrderingTest(oos, ois);
+                        break;
+                    case "5":
                         SystemTests.doServerTest(oos, ois);
                         break;
                     default:

@@ -14,7 +14,6 @@ class MessageReserve extends Message implements Serializable {
     private boolean IsCooled;
     private int Pallets;
     private LocalDateTime ReservationDate;
-    private Worksheet.WorkSheetType workSheetType;
 
     // Konstruktorok
     MessageReserve() {}
@@ -69,11 +68,4 @@ class MessageReserve extends Message implements Serializable {
         ReservationDate = reservationDate;
     }
 
-    public void setWorkSheetType(Worksheet.WorkSheetType workSheetType) {
-        this.workSheetType = workSheetType;
-    }
-
-    public Worksheet.WorkSheetType getWorkSheetType() {
-        return workSheetType;
-    }
 }

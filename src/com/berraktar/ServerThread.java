@@ -45,6 +45,7 @@ class ServerThread extends Thread {
                 if (object instanceof MessageProcess)   callProcess(objectOutputStream, (MessageProcess) object, employee.getName());
                 if (object instanceof MessageUnload)    callUnload(objectOutputStream, (MessageUnload) object, employee.getName());
                 if (object instanceof MessageComplete)  callComplete(objectOutputStream, (MessageComplete) object, employee.getName());
+                if (object instanceof MessageOrder)     callOrder(objectOutputStream, (MessageOrder) object, employee.getName());
                 if (object instanceof ServerTest)       callServerTest(objectOutputStream, (ServerTest) object, employee.getName());
                 if (object instanceof MessageReport)    callReport(objectOutputStream, (MessageReport) object, employee.getName());
             }
@@ -70,6 +71,13 @@ class ServerThread extends Thread {
         messageReserve = warehouse.DoReservation(messageReserve, accounting);
         oos.writeObject(messageReserve);
         System.out.println(userName + " munkalapot küldött jóváhagyásra - transactionID: " + messageReserve.getTransactionID());
+    }
+
+    // Új kiszállítási igény
+    private void callOrder(ObjectOutputStream oos, MessageOrder messageOrder, String userName) throws IOException {
+        messageOrder = warehouse.DoOrder(messageOrder, accounting);
+        oos.writeObject(messageOrder);
+        System.out.println(userName + " munkalapot küldött jóváhagyásra - transactionID: " + messageOrder.getTransactionID());
     }
 
     // Munkalap aktiválása

@@ -125,7 +125,7 @@ public class Warehouse implements Serializable {
         }
     }
 
-    // Beszállítás: Munkalap adatainak ellenőrzése, előfoglalás
+    // Beszállítás: Adatok ellenőrzése, előfoglalás
     public synchronized MessageReserve DoReservation(MessageReserve messageReserve, Accounting accounting) {
         Worksheet worksheet = WorkOrders.getWorksheet(messageReserve.getTransactionID());
         Renter renter = accounting.getRenter(messageReserve.getRenterID());
@@ -144,7 +144,7 @@ public class Warehouse implements Serializable {
             return messageReserve;
         }
 
-        // Elutasítás: elkésett a szállítmány
+        // Elutasítás: foglalás időpontja már elmúlt
         if (messageReserve.getReservationDate().isBefore(LocalDateTime.now())){
             messageReserve.setTransactionMessage("A foglalás időpontja már elmúlt");
             worksheet.setRejected();
@@ -187,6 +187,79 @@ public class Warehouse implements Serializable {
         // Minden OK, mehet a visszaigazolás
         messageReserve.setApproved();
         return messageReserve;
+    }
+
+    // Kiszállítás: Adatok ellenőrzése, előfoglalás
+    public MessageOrder DoOrder(MessageOrder messageOrder, Accounting accounting) {
+        Worksheet worksheet = WorkOrders.getWorksheet(messageOrder.getTransactionID());
+        Renter renter = accounting.getRenter(messageOrder.getRenterID());
+
+        // Elutasítás: bérlő nem létezik
+        if (renter == null) {
+            messageOrder.setTransactionMessage("A megadott bérlő azonosító nem létezik: " + messageOrder.getRenterID());
+            worksheet.setRejected();
+            return messageOrder;
+        }
+
+        // Palettaszám ellenőrzése, beállítása a munkalapon + lokációk kitöltése
+        List<Integer> locationList;
+        // Normál lokációk lekérdezése
+        locationList = getLocationListByPartNumber(messageOrder.getPartNumber(), messageOrder.getPallets(), false);
+        // Hűtött lokációk lekérdezése, ha a normálban nem volt találat
+        if (locationList == null) {
+            locationList = getLocationListByPartNumber(messageOrder.getPartNumber(), messageOrder.getPallets(), true);
+            worksheet.updateCooled(true);
+        }
+        // Elutasítás: nem elég a készlet a rendelés kiszolgálásához
+        if (locationList == null) {
+            messageOrder.setTransactionMessage("Nincs elég készlet a megadott cikkből: " + messageOrder.getPartNumber());
+            worksheet.setRejected();
+            return messageOrder;
+        }
+
+        // Terminál szabad kapacitás ellenőrzése, előfoglalás
+        int reservedTerminal = reserveTerminal(worksheet.isCooled(), messageOrder.getReservationDate());
+        if (reservedTerminal != 0) worksheet.setTerminalID(reservedTerminal);
+        // Elutasítás: nincs szabad terminál
+        else {
+            messageOrder.setTransactionMessage("A megadott időpontban nincs szabad terminál");
+            worksheet.setRejected();
+            return messageOrder;
+        }
+
+        // Minden OK, munkalap kitöltése
+        worksheet.setRenterID(messageOrder.getRenterID());
+        worksheet.setExternalPartNumber(messageOrder.getPartNumber());
+        worksheet.setNumberOfPallets(messageOrder.getPallets());
+        worksheet.setReservedDate(messageOrder.getReservationDate());
+        worksheet.setLocations(locationList);
+        worksheet.setApproved();
+
+        // Állapot mentése
+        saveWarehouseState();
+        WorkOrders.saveWorkOrdersState();
+
+        // Visszaigazolás
+        messageOrder.setApproved();
+        return messageOrder;
+    }
+
+    // Lokációk kigyűjtése cikkszám és palettamennyiség alapján
+    private List<Integer> getLocationListByPartNumber(String partNumber, int pallets, boolean isCooled) {
+        List<Integer> locationList = new ArrayList<>();
+        ConcurrentHashMap<Integer,Location> locations;
+        locations = isCooled ? this.cooledLocations : this.normalLocations;
+
+        // Lokációk szűrése
+        for (Map.Entry<Integer, Location> entry : locations.entrySet()) {
+            Location value = entry.getValue();
+            int key = entry.getKey();
+            if (value.scanPalletExternalID() == null) break;
+            if (value.scanPalletExternalID().equals(partNumber)) locationList.add(key);
+            if (locationList.size() == pallets) return locationList;
+        }
+        // Nincs találat
+        return null;
     }
 
     // Beszállítás: Egy raklap kirakása a terminálra

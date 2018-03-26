@@ -62,13 +62,12 @@ public final class UserIO {
     }
 
     // Munkalap kitöltése a foglalási adatokkal
-    public static Worksheet fillWorkSheet(Worksheet worksheet, MessageReserve messageReserve) {
+    public static void fillWorkSheet(Worksheet worksheet, MessageReserve messageReserve) {
         worksheet.setRenterID(messageReserve.getRenterID());
         worksheet.setExternalPartNumber(messageReserve.getPartNumber());
         worksheet.updateCooled(messageReserve.isCooled());
         worksheet.setNumberOfPallets(messageReserve.getPallets());
         worksheet.setReservedDate(messageReserve.getReservationDate());
-        return worksheet;
     }
 
     // Foglalás adatainak tömör (egy soros) kiíratása
@@ -81,6 +80,17 @@ public final class UserIO {
         System.out.print("\tIdő: " + UserIO.printDate(messageReserve.getReservationDate()));
         System.out.print("\tFoglalás: ");
         System.out.print(messageReserve.isApproved() ? "OK" : "NOK - " + messageReserve.getTransactionMessage());
+    }
+
+    // Rendelés adatainak tömör (egy soros) kiíratása
+    public static void printOrdering(MessageOrder messageOrder) {
+        System.out.print("\nID: " + messageOrder.getTransactionID());
+        System.out.print("\tBérlő: " + messageOrder.getRenterID());
+        System.out.print("\tCikk: " + messageOrder.getPartNumber());
+        System.out.print("\tRaklap: " + messageOrder.getPallets());
+        System.out.print("\tIdő: " + UserIO.printDate(messageOrder.getReservationDate()));
+        System.out.print("\tFoglalás: ");
+        System.out.print(messageOrder.isApproved() ? "OK" : "NOK - " + messageOrder.getTransactionMessage());
     }
 
 }

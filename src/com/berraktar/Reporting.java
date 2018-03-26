@@ -83,11 +83,11 @@ public final class Reporting {
         // Lokáció részletek
         reply.append("\nFoglalt normál lokációk listája\n");
         reply.append("\nLocID#\tRenterID\t\tInternalID\t\t\t\tExternalID");
-        getLocationList(reply, normalLocations);
+        fillLocationList(reply, normalLocations);
 
         reply.append("\n\nFoglalt hűtött lokációk listája\n");
         reply.append("\nLocID#\tRenterID\t\tInternalID\t\t\t\tExternalID");
-        getLocationList(reply, cooledLocations);
+        fillLocationList(reply, cooledLocations);
 
         // Válasz mentése a jelentésbe
         messageReport.setReply(reply.toString());
@@ -95,7 +95,7 @@ public final class Reporting {
     }
 
     // Lokáció lista lokáció jelentéshez
-    private static synchronized void getLocationList(StringBuilder reply, Map<Integer, Location> locations) {
+    private static synchronized void fillLocationList(StringBuilder reply, Map<Integer, Location> locations) {
         for (Map.Entry<Integer, Location> entry : locations.entrySet()) {
             Location value = entry.getValue();
             if (value.getRenterID() != null) {
