@@ -7,13 +7,43 @@ public class Storekeeper extends Employee {
     // Szerializációhoz kell
     private static final long serialVersionUID = 3980978824897032892L;
 
+    // Menü
+    private static final String menu = "\nBérraktár raktáros menü:\n\t" +
+            "1. Beérkezések\n\t" +
+            "2. Kiszállítások\n\t" +
+            "3. Kilépés\n" +
+            "Válassz menüpontot: ";
+
     // Konstruktor
     public Storekeeper(String name, UserType position) {
         super(name, position);
     }
 
+    // Raktáros menü
+    static void ShowMenu(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        System.out.print(menu);
+        String input = br.readLine();
+        while(!input.equals("3")) {
+            switch (input) {
+                case "1":
+                    Storekeeper.doReceiving(oos, ois);
+                    break;
+                case "2":
+                    Storekeeper.doShipping(oos, ois);
+                    break;
+                default:
+                    System.out.println("A megadott menüpont nem létezik! (" + input + ")");
+            }
+            System.out.print("\nNyomj ENTER-t a folytatáshoz!");
+            System.in.read();
+            System.out.print(menu);
+            input = br.readLine();
+        }
+    }
+
     // Bevételzés
-    public static void doReceiving(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+    private static void doReceiving(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
         // Munkalap adatok lekérése a szerverről
@@ -31,10 +61,11 @@ public class Storekeeper extends Employee {
 
         // Paletták szkennelése és kipakolása
         for (int i = 0; i < messageProcess.getPallets(); i++) {
-            System.out.print("Szkenneld be az " + i + ". palettát (Bérlő cikkszáma: " +
+            System.out.print("\nSzkenneld be az " + i + ". palettát (Bérlő cikkszáma: " +
                     messageProcess.getExternalPartNumber() + "): ");
             String scannedPartNumber = br.readLine();
-            while (scannedPartNumber.equals(messageProcess.getExternalPartNumber())) {
+            System.out.println(scannedPartNumber + " vs " + messageProcess.getExternalPartNumber());
+            while (!scannedPartNumber.equalsIgnoreCase(messageProcess.getExternalPartNumber())) {
                 System.out.println("A beszkennelt cikkszám nem egyezik a foglaláson szereplő cikkszámmal!");
                 System.out.print("Szkenneld be az " + i + ". palettát (Bérlő cikkszáma: " +
                         messageProcess.getExternalPartNumber() + "): ");
@@ -74,7 +105,7 @@ public class Storekeeper extends Employee {
     }
 
     // TODO: Kiszállítás
-    public static void doShipping(ObjectOutputStream oos, ObjectInputStream ois) {
+    private static void doShipping(ObjectOutputStream oos, ObjectInputStream ois) {
 
     }
 
@@ -82,4 +113,5 @@ public class Storekeeper extends Employee {
     static String generateInternalPartNumber(MessageProcess messageProcess) {
         return messageProcess.getRenterID() + "-" + messageProcess.getExternalPartNumber();
     }
+
 }

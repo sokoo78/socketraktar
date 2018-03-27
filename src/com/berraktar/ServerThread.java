@@ -46,7 +46,7 @@ class ServerThread extends Thread {
                 if (object instanceof MessageUnload)    callUnload(objectOutputStream, (MessageUnload) object, employee.getName());
                 if (object instanceof MessageComplete)  callComplete(objectOutputStream, (MessageComplete) object, employee.getName());
                 if (object instanceof MessageOrder)     callOrder(objectOutputStream, (MessageOrder) object, employee.getName());
-                if (object instanceof ServerTest)       callServerTest(objectOutputStream, (ServerTest) object, employee.getName());
+                if (object instanceof MessageServerTest)       callServerTest(objectOutputStream, (MessageServerTest) object, employee.getName());
                 if (object instanceof MessageReport)    callReport(objectOutputStream, (MessageReport) object, employee.getName());
             }
 
@@ -139,11 +139,11 @@ class ServerThread extends Thread {
     }
 
     // Szerver teszt
-    private void callServerTest(ObjectOutputStream oos, ServerTest serverTest, String userName) throws IOException {
+    private void callServerTest(ObjectOutputStream oos, MessageServerTest messageServerTest, String userName) throws IOException {
         // Összeszorozzuk a két számot amit kaptunk az objektumban
-        serverTest.setResult(serverTest.getFirstNumber() * serverTest.getSecondNumber());
+        messageServerTest.setResult(messageServerTest.getFirstNumber() * messageServerTest.getSecondNumber());
         System.out.println("DoTest metódust hívta: " + userName);
         // Feldolgozott objektum visszaküldése a kliensnek
-        oos.writeObject(serverTest);
+        oos.writeObject(messageServerTest);
     }
 }

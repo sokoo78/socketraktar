@@ -1,15 +1,62 @@
 package com.berraktar;
 
+import java.io.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public final class Reporting {
+final class Reporting {
+
+    // Jelentések menü
+    private final static String menu = "\nBérraktár jelentések menü:\n\t" +
+            "1. Ügyfél lista\n\t" +
+            "2. Munkalap lista\n\t" +
+            "3. Lokáció lista\n\t" +
+            "4. Terminál foglalási lista\n\t" +
+            "5. Kilépés\n" +
+            "Válassz menüpontot: ";
+
+    // Jelentések menü
+    static void ShowMenu(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        System.out.print(menu);
+        String input = br.readLine();
+        while(!input.equals("5")){
+            switch(input){
+                case "1":
+                    GetReport(oos, ois, MessageReport.ReportType.Renters);
+                    break;
+                case "2":
+                    GetReport(oos, ois, MessageReport.ReportType.Worksheets);
+                    break;
+                case "3":
+                    GetReport(oos, ois, MessageReport.ReportType.Locations);
+                    break;
+                case "4":
+                    GetReport(oos, ois, MessageReport.ReportType.Terminals);
+                    break;
+                default:
+                    System.out.println("A megadott menüpont nem létezik! (" + input + ")");
+            }
+            System.out.print("\nNyomj ENTER-t a folytatáshoz!");
+            System.in.read();
+            System.out.print(menu);
+            input = br.readLine();
+        }
+    }
+
+    // Szerver kommunikáció
+    private static void GetReport(ObjectOutputStream oos, ObjectInputStream ois, MessageReport.ReportType reportType) throws IOException, ClassNotFoundException {
+        MessageReport messageReport = new MessageReport(reportType);
+        oos.writeObject(messageReport);
+        messageReport = (MessageReport) ois.readObject();
+        System.out.println(messageReport.getReply());
+    }
 
     // Bérlők jelentés
-    public static synchronized MessageReport RenterReport(MessageReport messageReport, Map<String, Renter> renters) {
+    static synchronized MessageReport RenterReport(MessageReport messageReport, Map<String, Renter> renters) {
         StringBuilder reply = new StringBuilder();
 
         // Fejléc
@@ -31,7 +78,7 @@ public final class Reporting {
     }
 
     // Munkalapok jelentés
-    public static synchronized MessageReport WorksheetReport(MessageReport messageReport, ConcurrentHashMap<Integer, Worksheet> worksheets) {
+    static synchronized MessageReport WorksheetReport(MessageReport messageReport, ConcurrentHashMap<Integer, Worksheet> worksheets) {
         StringBuilder reply = new StringBuilder();
         DateTimeFormatter date = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         DateTimeFormatter time = DateTimeFormatter.ofPattern("HH:mm");
@@ -66,7 +113,7 @@ public final class Reporting {
     }
 
     // Lokáció jelentés
-    public static synchronized MessageReport LocationReport(MessageReport messageReport, Warehouse warehouse) {
+    static synchronized MessageReport LocationReport(MessageReport messageReport, Warehouse warehouse) {
         StringBuilder reply = new StringBuilder();
         Map<Integer,Location> normalLocations = warehouse.getNormalLocations();
         Map<Integer,Location> cooledLocations = warehouse.getCooledLocations();
@@ -108,7 +155,7 @@ public final class Reporting {
     }
 
     // Terminál foglalások jelentés
-    public static synchronized MessageReport TerminalReport(MessageReport messageReport, Warehouse warehouse) {
+    static synchronized MessageReport TerminalReport(MessageReport messageReport, Warehouse warehouse) {
         StringBuilder reply = new StringBuilder();
 
         // Fejléc

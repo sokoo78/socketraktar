@@ -5,7 +5,8 @@ import java.io.Serializable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public final class WorkOrders implements Serializable {
+final class WorkOrders implements Serializable {
+
     // Szerializációhoz kell
     private static final long serialVersionUID = 5107772686822488727L;
     // Munkalap számláló
@@ -34,14 +35,14 @@ public final class WorkOrders implements Serializable {
 }
 
     // Munkalapok mentése
-    public static synchronized void saveWorkOrdersState() {
+    static synchronized void saveWorkOrdersState() {
     // Adatok mentése fájlba
     Persistency.SaveObject(worksheets, "WorkSheets.ser");
     Persistency.SaveObject(workCounter, "WorkCounter.ser");
 }
 
     // Új munkalap létrehozása
-    public static synchronized int CreateWorkSheet(MessageCreate messageCreate) {
+    static synchronized int CreateWorkSheet(MessageCreate messageCreate) {
         Integer newID = workCounter.incrementAndGet();
         Worksheet worksheet;
         if (messageCreate.isIncoming()){
@@ -57,7 +58,7 @@ public final class WorkOrders implements Serializable {
     }
 
     // Munkalap aktiválása
-    public static synchronized MessageActivate ActivateWorkSheet(MessageActivate messageActivate) {
+    static synchronized MessageActivate ActivateWorkSheet(MessageActivate messageActivate) {
         Worksheet worksheet = worksheets.get(messageActivate.getTransactionID());
 
         // Elutasítás: Nem létezik a munkalap
@@ -93,7 +94,7 @@ public final class WorkOrders implements Serializable {
     }
 
     // Munkalap végrehajtásának indítása
-    public static synchronized MessageProcess ProcessWorkSheet(MessageProcess messageProcess) {
+    static synchronized MessageProcess ProcessWorkSheet(MessageProcess messageProcess) {
         Worksheet worksheet = worksheets.get(messageProcess.getTransactionID());
 
         // Létezik a munkalap?
@@ -121,11 +122,11 @@ public final class WorkOrders implements Serializable {
 
     // Getterek, setterek
 
-    public static synchronized ConcurrentHashMap<Integer, Worksheet> getWorksheets() {
+    static synchronized ConcurrentHashMap<Integer, Worksheet> getWorksheets() {
         return worksheets;
     }
 
-    public static synchronized Worksheet getWorksheet(int transactionID) {
+    static synchronized Worksheet getWorksheet(int transactionID) {
         return worksheets.get(transactionID);
     }
 }

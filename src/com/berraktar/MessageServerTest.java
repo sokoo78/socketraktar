@@ -1,38 +1,36 @@
 package com.berraktar;
 
-// TODO Példa osztály, majd törölhető
-// Példa Serializable objektumra
-
 import java.io.Serializable;
 
-public class ServerTest implements Serializable {
+class MessageServerTest implements Serializable {
 
+    // Szerializációhoz kell
     private static final long serialVersionUID = 8745960972757367043L;
     // Ezt a két számot fogjuk megadni
-    private Integer firstNumber = null;
-    private Integer secondNumber = null;
+    private Integer firstNumber;
+    private Integer secondNumber;
     // Ebbe pedig várjuk vissza az eredményt
     // Össze fogjuk szorozni őket a szerveren
     private Integer result = null;
 
-    ServerTest(Integer firstNumber, Integer secondNumber){
+    MessageServerTest(Integer firstNumber, Integer secondNumber){
         this.firstNumber = firstNumber;
         this.secondNumber = secondNumber;
     }
 
-    public Integer getFirstNumber(){
+    Integer getFirstNumber(){
         return firstNumber;
     }
 
-    public Integer getSecondNumber(){
+    Integer getSecondNumber(){
         return secondNumber;
     }
 
-    public Integer getResult(){
+    Integer getResult(){
         return result;
     }
 
-    public void setResult(Integer result){
+    void setResult(Integer result){
         this.result = result;
     }
 }

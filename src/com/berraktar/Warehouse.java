@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Warehouse implements Serializable {
+
     // Szerializációhoz kell
     private static final long serialVersionUID = 1041441426752225702L;
 
@@ -126,7 +127,7 @@ public class Warehouse implements Serializable {
     }
 
     // Beszállítás: Adatok ellenőrzése, előfoglalás
-    public synchronized MessageReserve DoReservation(MessageReserve messageReserve, Accounting accounting) {
+    synchronized MessageReserve DoReservation(MessageReserve messageReserve, Accounting accounting) {
         Worksheet worksheet = WorkOrders.getWorksheet(messageReserve.getTransactionID());
         Renter renter = accounting.getRenter(messageReserve.getRenterID());
 
@@ -190,7 +191,7 @@ public class Warehouse implements Serializable {
     }
 
     // Kiszállítás: Adatok ellenőrzése, előfoglalás
-    public MessageOrder DoOrder(MessageOrder messageOrder, Accounting accounting) {
+    MessageOrder DoOrder(MessageOrder messageOrder, Accounting accounting) {
         Worksheet worksheet = WorkOrders.getWorksheet(messageOrder.getTransactionID());
         Renter renter = accounting.getRenter(messageOrder.getRenterID());
 
@@ -263,7 +264,7 @@ public class Warehouse implements Serializable {
     }
 
     // Beszállítás: Egy raklap kirakása a terminálra
-    public synchronized MessageUnload DoUnloading(MessageUnload messageUnload) {
+    synchronized MessageUnload DoUnloading(MessageUnload messageUnload) {
         Worksheet worksheet = WorkOrders.getWorksheet(messageUnload.getTransactionID());
 
         // Létezik a munkalap?
@@ -301,7 +302,7 @@ public class Warehouse implements Serializable {
     }
 
     // Beszállítás: Raklapok berakása a lokációkba, munka készrejelentése
-    public synchronized MessageComplete DoStoring(MessageComplete messageComplete, Accounting accounting) {
+    synchronized MessageComplete DoStoring(MessageComplete messageComplete, Accounting accounting) {
         Worksheet worksheet = WorkOrders.getWorksheet(messageComplete.getTransactionID());
 
         // Visszautasítás: tranzakció azonosító nem létezik
@@ -464,29 +465,29 @@ public class Warehouse implements Serializable {
 
     // Getterek, Setterek
 
-    public synchronized int getMaxNormalLocation() {
+    synchronized int getMaxNormalLocation() {
         return this.maxNormalLocation;
     }
-    public synchronized int getMaxCooledLocation() {
+    synchronized int getMaxCooledLocation() {
         return this.maxCooledLocation;
     }
-    public synchronized int getMaxNormalTerminal() {
+    synchronized int getMaxNormalTerminal() {
         return this.maxNormalTerminal;
     }
-    public synchronized int getMaxCooledTerminal() {
+    synchronized int getMaxCooledTerminal() {
         return this.maxCooledTerminal;
     }
 
-    public synchronized int getFreeNormalLocation() {
+    synchronized int getFreeNormalLocation() {
         return this.freeNormalLocation;
     }
-    public synchronized int getFreeCooledLocation() {
+    synchronized int getFreeCooledLocation() {
         return this.freeCooledLocation;
     }
-    public synchronized int getFreeNormalTerminal() {
+    synchronized int getFreeNormalTerminal() {
         return this.freeNormalTerminal;
     }
-    public synchronized int getFreeCooledTerminal() {
+    synchronized int getFreeCooledTerminal() {
         return this.freeCooledTerminal;
     }
 
@@ -496,17 +497,17 @@ public class Warehouse implements Serializable {
     public synchronized void increaseFreeNormalLocations(int byAmount){
         this.freeNormalLocation += byAmount;
     }
-    public synchronized void decreaseFreeCooledLocations(int byAmount){
+    synchronized void decreaseFreeCooledLocations(int byAmount){
         this.freeCooledLocation -= byAmount;
     }
-    public synchronized void decreaseFreeNormalLocations(int byAmount){
+    synchronized void decreaseFreeNormalLocations(int byAmount){
         this.freeNormalLocation -= byAmount;
     }
 
-    public synchronized ConcurrentHashMap<Integer,Location> getNormalLocations(){
+    synchronized ConcurrentHashMap<Integer,Location> getNormalLocations(){
         return this.normalLocations;
     }
-    public synchronized ConcurrentHashMap<Integer,Location> getCooledLocations(){
+    synchronized ConcurrentHashMap<Integer,Location> getCooledLocations(){
         return this.cooledLocations;
     }
     public synchronized ConcurrentHashMap<Integer,Terminal> getNormalTerminals(){
@@ -516,10 +517,10 @@ public class Warehouse implements Serializable {
         return this.cooledTerminals;
     }
 
-    public synchronized ConcurrentHashMap<LocalDateTime,List<Integer>> getReservedNormalTerminals(){
+    synchronized ConcurrentHashMap<LocalDateTime,List<Integer>> getReservedNormalTerminals(){
         return this.reservedNormalTerminals;
     }
-    public synchronized ConcurrentHashMap<LocalDateTime,List<Integer>> getReservedCooledTerminals(){
+    synchronized ConcurrentHashMap<LocalDateTime,List<Integer>> getReservedCooledTerminals(){
         return this.reservedCooledTerminals;
     }
 

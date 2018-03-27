@@ -8,10 +8,52 @@ import java.util.List;
 
 import static com.berraktar.Storekeeper.generateInternalPartNumber;
 
-public final class SystemTests {
+final class SystemTests {
+
+    // Teszt menü
+    private final static String menu = "\nBérraktár tesztek menü:\n\t" +
+            "1. Foglalás teszt\n\t" +
+            "2. Beérkezés teszt\n\t" +
+            "3. Bevételezés teszt\n\t" +
+            "4. Rendelés teszt\n\t" +
+            "5. Szerver teszt\n\t" +
+            "6. Kilépés\n" +
+            "Válassz menüpontot: ";
+
+    // Teszt menü
+    static void ShowMenu(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        System.out.print(menu);
+        String input = br.readLine();
+        while(!input.equals("6")){
+            switch(input){
+                case "1":
+                    SystemTests.ReservationTest(oos, ois);
+                    break;
+                case "2":
+                    SystemTests.ActivationTest(oos, ois);
+                    break;
+                case "3":
+                    SystemTests.ProcessingTest(oos, ois);
+                    break;
+                case "4":
+                    SystemTests.OrderingTest(oos, ois);
+                    break;
+                case "5":
+                    SystemTests.doServerTest(oos, ois);
+                    break;
+                default:
+                    System.out.println("A megadott menüpont nem létezik! (" + input + ")");
+            }
+            System.out.print("\nNyomj ENTER-t a folytatáshoz!");
+            System.in.read();
+            System.out.print(menu);
+            input = br.readLine();
+        }
+    }
 
     // Foglalási teszt
-    public static void doReservationTest(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+    private static void ReservationTest(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
         System.out.println("\n Foglalási teszt\n");
 
         // Teszt foglalási adatok
@@ -60,7 +102,7 @@ public final class SystemTests {
     }
 
     // Beérkezési teszt
-    public static void doActivationTest(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+    private static void ActivationTest(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
         System.out.println("\n Beérkezési teszt\n");
 
         List<MessageActivate> testActivations = new ArrayList<>();
@@ -90,7 +132,7 @@ public final class SystemTests {
     }
 
     // Betárolási teszt
-    public static void doProcessingTest(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+    private static void ProcessingTest(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
         System.out.println("\n Bevételezés teszt\n");
 
         // Adatok lekérése a szerverről az 1-es teszt tranzakcióhoz
@@ -132,7 +174,7 @@ public final class SystemTests {
     }
 
     // Rendelési teszt
-    public static void doOrderingTest(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+    private static void OrderingTest(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
         System.out.println("\n Rendelési teszt\n");
 
         // Teszt foglalási adatok
@@ -171,7 +213,7 @@ public final class SystemTests {
     }
 
     // Kliens-Szerver kommunikáció teszt
-    static void doServerTest(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+    private static void doServerTest(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         Integer firstNumber = null;
         Integer secondNumber = null;
@@ -186,11 +228,11 @@ public final class SystemTests {
 
         // Adat küldése a szerverre az OutpuStream-en keresztül
         // Bármilyen objektum lehet ami implementálja a Serializable interfészt
-        ServerTest serverTest = new ServerTest(firstNumber,secondNumber);
-        oos.writeObject(serverTest);
+        MessageServerTest messageServerTest = new MessageServerTest(firstNumber,secondNumber);
+        oos.writeObject(messageServerTest);
         // Szerver válaszának a kiolvasása az InputStream-ről
-        ServerTest returnServerTest = (ServerTest)ois.readObject();
-        System.out.println("Eredmény: " + returnServerTest.getResult());
+        MessageServerTest returnMessageServerTest = (MessageServerTest)ois.readObject();
+        System.out.println("Eredmény: " + returnMessageServerTest.getResult());
     }
 
 }

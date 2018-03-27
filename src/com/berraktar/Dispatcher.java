@@ -8,13 +8,47 @@ public class Dispatcher extends Employee implements Serializable {
     // Szerializációhoz kell
     private static final long serialVersionUID = -8829548734538973664L;
 
+    // Menü
+    private static final String menu = "\nBérraktár diszpécser menü:\n\t" +
+            "1. Új Foglalás\n\t" +
+            "2. Új kiszállítás\n\t" +
+            "3. Szállító érkezett\n\t" +
+            "4. Kilépés\n" +
+            "Válassz menüpontot: ";
+
     // Konstruktor
     public Dispatcher(String name, UserType position) {
         super(name, position);
     }
 
+    // Diszpécser menü
+    static void ShowMenu(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        System.out.print(menu);
+        String input = br.readLine();
+        while(!input.equals("4")){
+            switch(input){
+                case "1":
+                    Reservation(oos, ois);
+                    break;
+                case "2":
+                    Dispatcher.Delivery(oos, ois);
+                    break;
+                case "3":
+                    Dispatcher.Activation(oos, ois);
+                    break;
+                default:
+                    System.out.println("A megadott menüpont nem létezik! (" + input + ")");
+            }
+            System.out.print("\nNyomj ENTER-t a folytatáshoz!");
+            System.in.read();
+            System.out.print(menu);
+            input = br.readLine();
+        }
+    }
+
     // Új foglalás
-    static void newReservation(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+    private static void Reservation(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
         // Új munkalap (tranzakció azonosító) kérelem
@@ -56,27 +90,27 @@ public class Dispatcher extends Employee implements Serializable {
         // TODO: Foglalás jóváhagyása, vagy törlése
     }
 
-    // Beszállítás (megérkezett a szállítmány)
-    static void startReceiving(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+    // Megérkezett a fuvarozó
+    private static void Activation(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        // Beérkezés adatainak bekérése
+        // Szállítás adatainak bekérése
         System.out.print("Tranzakció azonosító: ");         // Munkalap sorszáma
         int transactionID = Integer.parseInt(br.readLine());
-        System.out.print("Beérkezés időpontja: ");          // TODO: a dátumot csak a teszt célból kell megadni, realtime működés esetén LocalDateTime.now() kell ide
+        System.out.print("Szállító érkezésének időpontja: ");          // TODO: a dátumot csak a teszt célból kell megadni, realtime működés esetén LocalDateTime.now() kell ide
         LocalDateTime receivingDate = UserIO.readDate(false);
         MessageActivate messageActivate = new MessageActivate(transactionID, receivingDate);
         oos.writeObject(messageActivate);
         messageActivate = (MessageActivate) ois.readObject();
         if (messageActivate.isApproved()){
-            System.out.print("Beszállítási adatok elfogadva - munkalap aktiválva!");
+            System.out.print("Szállítási adatok elfogadva - munkalap aktiválva!");
         } else {
-            System.out.print("Beszállítási adatok elutasítva!");
+            System.out.print("Szállítási adatok elutasítva!");
             System.out.print("\nSzerver üzenete: " + messageActivate.getTransactionMessage());
         }
     }
 
     // Új Kiszállítás
-    static void newDelivery(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+    private static void Delivery(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
         // Új munkalap (tranzakció azonosító) kérelem
@@ -113,12 +147,6 @@ public class Dispatcher extends Employee implements Serializable {
         }
 
         // TODO: Szállítás jóváhagyása, vagy törlése
-    }
-
-    // TODO: Kifejtendő - Kiszállítás (megérkezett a szállító)
-    static void startDelivery(ObjectOutputStream oos, ObjectInputStream ois) {
-        // TODO 1: dátumot csekkolni - ha nem egyezik a foglalással akkor kuka
-        // TODO 2: munkalapot aktiválni kell, hogy lássa a raktáros (raktáros kiszállítás funkció is kell)
     }
 
 }
