@@ -335,9 +335,9 @@ public class Warehouse implements Serializable {
         }
 
         // Kipakolás a lokációba
-        for (int i = 0; i < reservedLocations.size(); i++){
+        for (Integer reservedLocation : reservedLocations) {
             Pallet pallet = terminal.takePallet(messageComplete.getInternalPartNumber());
-            locations.get(reservedLocations.get(i)).addPallet(pallet);
+            locations.get(reservedLocation).addPallet(pallet);
         }
 
         // Visszaigazolás

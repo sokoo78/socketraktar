@@ -6,7 +6,7 @@ import java.net.Socket;
 
 public class Server {
 
-    public static final int PORT = 4445;
+    static final int PORT = 4445;
     private Warehouse warehouse = new Warehouse(3000, 800, 9, 3);
     private Accounting accounting = new Accounting();
 

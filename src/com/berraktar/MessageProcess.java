@@ -30,35 +30,35 @@ class MessageProcess extends Message implements Serializable {
         this.renterID = renterID;
     }
 
-    public int getPallets() {
+    int getPallets() {
         return pallets;
     }
 
-    public void setPallets(int pallets) {
+    void setPallets(int pallets) {
         this.pallets = pallets;
     }
 
-    public String getExternalPartNumber() {
+    String getExternalPartNumber() {
         return externalPartNumber;
     }
 
-    public void setExternalPartNumber(String externalPartNumber) {
+    void setExternalPartNumber(String externalPartNumber) {
         this.externalPartNumber = externalPartNumber;
     }
 
-    public String getInternalPartNumber() {
+    String getInternalPartNumber() {
         return internalPartNumber;
     }
 
-    public void setInternalPartNumber(String internalPartNumber) {
+    void setInternalPartNumber(String internalPartNumber) {
         this.internalPartNumber = internalPartNumber;
     }
 
-    public void setTerminalID(int terminalID) {
+    void setTerminalID(int terminalID) {
         this.terminalID = terminalID;
     }
 
-    public int getTerminalID() {
+    int getTerminalID() {
         return terminalID;
     }
 

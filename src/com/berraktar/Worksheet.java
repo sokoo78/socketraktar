@@ -46,9 +46,8 @@ public class Worksheet implements Serializable {
     // Műveletek
 
     // Paletta kipakolás
-    public Pallet takePallet () {
+    Pallet takePallet() {
         Pallet pallet = new Pallet(this.getRenterID(), this.getExternalPartNumber());
-        System.out.println("\n" +  this.numberOfPallets + " fos " + this.unloadedPallets + "\n");
         if (this.unloadedPallets < this.numberOfPallets){
             unloadedPallets++;
         } else {
@@ -59,7 +58,7 @@ public class Worksheet implements Serializable {
 
     // Getterek, Setterek
 
-    public String getStatus(){
+    String getStatus(){
         String status                  = "Elutasítva  ";
         if (this.isInitialized) status = "Létrehozva  ";
         if (this.isRejected) status    = "Elutasítva  ";
@@ -75,35 +74,35 @@ public class Worksheet implements Serializable {
         return transactionID;
     }
 
-    public void setTransactionID(int transactionID) {
+    void setTransactionID(int transactionID) {
         this.transactionID = transactionID;
     }
 
-    public WorkSheetType getWorkSheetType() {
+    WorkSheetType getWorkSheetType() {
         return workSheetType;
     }
 
-    public void setInitialized() {
+    void setInitialized() {
         isInitialized = true;
     }
 
-    public void setRejected() {
+    void setRejected() {
         isRejected = true;
     }
 
-    public boolean isApproved() {
+    boolean isApproved() {
         return isApproved;
     }
 
-    public void setApproved() {
+    void setApproved() {
         isApproved = true;
     }
 
-    public boolean isActive() {
+    boolean isActive() {
         return isActive;
     }
 
-    public void setActive() {
+    void setActive() {
         isActive = true;
     }
 
@@ -115,59 +114,59 @@ public class Worksheet implements Serializable {
         this.renterID = renterID;
     }
 
-    public LocalDateTime getReservedDate() {
+    LocalDateTime getReservedDate() {
         return reservedDate;
     }
 
-    public void setReservedDate(LocalDateTime reservedDate) {
+    void setReservedDate(LocalDateTime reservedDate) {
         this.reservedDate = reservedDate;
     }
 
-    public String getExternalPartNumber() {
+    String getExternalPartNumber() {
         return externalPartNumber;
     }
 
-    public void setExternalPartNumber(String externalPartNumber) {
+    void setExternalPartNumber(String externalPartNumber) {
         this.externalPartNumber = externalPartNumber;
     }
 
-    public boolean isCooled() {
+    boolean isCooled() {
         return isCooled;
     }
 
-    public void updateCooled(boolean isCooled) {
+    void updateCooled(boolean isCooled) {
         this.isCooled = isCooled;
     }
 
-    public int getNumberOfPallets() {
+    int getNumberOfPallets() {
         return numberOfPallets;
     }
 
-    public void setNumberOfPallets(int numberOfPallets) {
+    void setNumberOfPallets(int numberOfPallets) {
         this.numberOfPallets = numberOfPallets;
     }
 
-    public void setConfirmed() {
+    void setConfirmed() {
         isCompleted = true;
     }
 
-    public void setCancelled() {
+    void setCancelled() {
         isCancelled = true;
     }
 
-    public int getTerminalID() {
+    int getTerminalID() {
         return terminalID;
     }
 
-    public void setTerminalID(int terminalID) {
+    void setTerminalID(int terminalID) {
         this.terminalID = terminalID;
     }
 
-    public List<Integer> getLocations() {
+    List<Integer> getLocations() {
         return locations;
     }
 
-    public void setLocations(List<Integer> locations) {
+    void setLocations(List<Integer> locations) {
         this.locations = locations;
     }
 
@@ -179,7 +178,7 @@ public class Worksheet implements Serializable {
         this.receivedDate = receivedDate;
     }
 
-    public void setProcessing() {
+    void setProcessing() {
         this.isProcessing = true;
     }
 
