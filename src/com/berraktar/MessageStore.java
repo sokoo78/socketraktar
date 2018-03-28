@@ -2,7 +2,7 @@ package com.berraktar;
 
 import java.io.Serializable;
 
-public class MessageComplete extends Message implements Serializable {
+public class MessageStore extends Message implements Serializable {
 
     // Szerializációhoz kell
     private static final long serialVersionUID = 7591961149740222548L;
@@ -10,7 +10,7 @@ public class MessageComplete extends Message implements Serializable {
     private String internalPartNumber;
 
     // Konstruktor
-    MessageComplete(int transactionID) {
+    MessageStore(int transactionID) {
         super(transactionID);
     }
 

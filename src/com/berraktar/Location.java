@@ -21,13 +21,13 @@ public class Location implements Serializable {
         this.isReserved = isReserved;
     }
 
-    // Paletta elhelyezése a lókációba
-    public void addPallet(Pallet pallet) {
+    // Paletta elhelyezése a lokációba
+    void addPallet(Pallet pallet) {
         this.pallet = pallet;
     }
 
     // Paletta levétele a lokációból
-    public Pallet takePallet() {
+    Pallet takePallet() {
         Pallet _pallet = this.pallet;
         this.pallet = null;
         return _pallet;
@@ -39,7 +39,7 @@ public class Location implements Serializable {
         return this.pallet.scanPallet();
     }
 
-    public String scanPalletInternalID(){
+    String scanPalletInternalID(){
         if (this.pallet == null){
             return "n/a";
         } else {
@@ -47,7 +47,7 @@ public class Location implements Serializable {
         }
     }
 
-    public String scanPalletExternalID(){
+    String scanPalletExternalID(){
         if (this.pallet == null){
             return "n/a";
         } else {
@@ -73,7 +73,7 @@ public class Location implements Serializable {
         return RenterID;
     }
 
-    public boolean isReserved() {
+    boolean isReserved() {
         return isReserved;
     }
 

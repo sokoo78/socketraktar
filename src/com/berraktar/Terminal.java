@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Terminal implements Serializable {
+class Terminal implements Serializable {
     // Szerializációhoz kell
     private static final long serialVersionUID = 4217347426722612092L;
 
@@ -20,12 +20,12 @@ public class Terminal implements Serializable {
 
 
     // Paletta lerakodása a terminálra
-    public void addPallet(Pallet pallet){
+    void addPallet(Pallet pallet){
         this.palletList.put(pallet.getInternalPartNumber(), pallet);
     }
 
     // Paletta kirakodása a terminálról
-    public Pallet takePallet(String palletID){
+    Pallet takePallet(String palletID){
         Pallet _pallet = palletList.get(palletID);
         palletList.remove(palletID);
         return _pallet;
@@ -33,27 +33,16 @@ public class Terminal implements Serializable {
 
     // Terminál getterei és setterei
 
-    public Map<String, Pallet> getPalletList() {
+    Map<String, Pallet> getPalletList() {
         return palletList;
     }
 
-    public void setPalletList(Map<String, Pallet> palletList) {
-        this.palletList = palletList;
+    void setFree() {
+        this.palletList.clear();
+        this.isFree = true;
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public boolean isFree() {
-        return isFree;
-    }
-
-    public void setFree() {
-        isFree = true;
-    }
-
-    public void setOccupied() {
+    void setOccupied() {
         isFree = false;
     }
 }

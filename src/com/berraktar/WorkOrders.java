@@ -97,15 +97,20 @@ final class WorkOrders implements Serializable {
     static synchronized MessageProcess ProcessWorkSheet(MessageProcess messageProcess) {
         Worksheet worksheet = worksheets.get(messageProcess.getTransactionID());
 
-        // Létezik a munkalap?
-        if (worksheet == null) {
-            messageProcess.setTransactionMessage("Ezen a számon nincs foglalás a rendszerben!");
+        // Létezik a munkalap és megfelelő státuszban van?
+        if (worksheet == null || !worksheet.isActive()) {
+            messageProcess.setTransactionMessage("Ezen a számon nincs munkalap a rendszerben!");
             return messageProcess;
         }
 
-        // Beérkeztetéshez szükséges adatok kitöltése
-        messageProcess.setRenterID(worksheet.getRenterID());
+        // Kiszállításhoz szükséges adatok kitöltése
+        if (worksheet.getWorkSheetType() == Worksheet.WorkSheetType.Outgoing) {
+            messageProcess.setLocations(worksheet.getLocations());
+        }
+
+        // Beérkeztetéshez és kiszállításhoz is szükséges adatok kitöltése
         messageProcess.setPallets(worksheet.getNumberOfPallets());
+        messageProcess.setRenterID(worksheet.getRenterID());
         messageProcess.setExternalPartNumber(worksheet.getExternalPartNumber());
         messageProcess.setTerminalID(worksheet.getTerminalID());
 

@@ -16,8 +16,9 @@ final class SystemTests {
             "2. Beérkezés teszt\n\t" +
             "3. Bevételezés teszt\n\t" +
             "4. Rendelés teszt\n\t" +
-            "5. Szerver teszt\n\t" +
-            "6. Kilépés\n" +
+            "5. Kiszállítás teszt\n\t" +
+            "6. Szerver teszt\n\t" +
+            "7. Kilépés\n" +
             "Válassz menüpontot: ";
 
     // Teszt menü
@@ -25,7 +26,7 @@ final class SystemTests {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         System.out.print(menu);
         String input = br.readLine();
-        while(!input.equals("6")){
+        while(!input.equals("7")){
             switch(input){
                 case "1":
                     SystemTests.ReservationTest(oos, ois);
@@ -40,6 +41,9 @@ final class SystemTests {
                     SystemTests.OrderingTest(oos, ois);
                     break;
                 case "5":
+                    SystemTests.doShippingTest(oos, ois);
+                    break;
+                case "6":
                     SystemTests.doServerTest(oos, ois);
                     break;
                 default:
@@ -161,15 +165,15 @@ final class SystemTests {
         }
 
         // Munkalap lejelentése a szervernek
-        MessageComplete messageComplete = new MessageComplete(messageProcess.getTransactionID());
-        messageComplete.setRenterID(messageProcess.getRenterID());
-        messageComplete.setInternalPartNumber(messageProcess.getInternalPartNumber());
-        oos.writeObject(messageComplete);
-        messageComplete = (MessageComplete)ois.readObject();
-        if (messageComplete.isApproved()){
+        MessageStore messageStore = new MessageStore(messageProcess.getTransactionID());
+        messageStore.setRenterID(messageProcess.getRenterID());
+        messageStore.setInternalPartNumber(messageProcess.getInternalPartNumber());
+        oos.writeObject(messageStore);
+        messageStore = (MessageStore)ois.readObject();
+        if (messageStore.isApproved()){
             System.out.print("\nBevételezés OK");
         } else {
-            System.out.print("\nBevételezés NOK - Szerver üzenete: " + messageComplete.getTransactionMessage());
+            System.out.print("\nBevételezés NOK - Szerver üzenete: " + messageStore.getTransactionMessage());
         }
     }
 
@@ -209,6 +213,53 @@ final class SystemTests {
 
             // Tömör kiírás
             UserIO.printOrdering(messageOrder);
+        }
+    }
+
+    // Kiszállítási teszt
+    private static void doShippingTest(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+
+        // Munkalap aktiválása
+        DateTimeFormatter dateformat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        MessageActivate messageActivate = new MessageActivate(12,LocalDateTime.parse("2019-12-04 12:15", dateformat));
+        oos.writeObject(messageActivate);
+        messageActivate = (MessageActivate) ois.readObject();
+        if (messageActivate.isApproved()) {
+            System.out.print("Aktiválás OK");
+        } else {
+            System.out.print("Aktiválás NOK: " + messageActivate.getTransactionMessage() + "\t");
+        }
+
+        // Munkalap adatok lekérése a szerverről
+        MessageProcess messageProcess = new MessageProcess(12);
+        oos.writeObject(messageProcess);
+        messageProcess = (MessageProcess)ois.readObject();
+        if (messageProcess.isApproved()){
+            System.out.print("\nAdatlekérés OK");
+        } else {
+            System.out.print("\nAdatlekérés NOK: " + messageProcess.getTransactionMessage());
+            return;
+        }
+
+        // Paletta lejelentése a szervernek - kirakás a terminálra
+        MessageLoad messageLoad = new MessageLoad(messageProcess.getTransactionID());
+        oos.writeObject(messageLoad);
+        messageLoad = (MessageLoad)ois.readObject();
+        if (messageLoad.isApproved()){
+            System.out.print("\nKitárolás OK - Terminál: " + messageProcess.getTerminalID());
+        } else {
+            System.out.print("\nKitárolás NOK: " + messageLoad.getTransactionMessage());
+            return;
+        }
+
+        // Munkalap lejelentése a szervernek - kiszállítás a terminálról
+        MessageShip messageShip = new MessageShip(messageProcess.getTransactionID());
+        oos.writeObject(messageShip);
+        messageShip = (MessageShip)ois.readObject();
+        if (messageShip.isApproved()){
+            System.out.print("\nKiszállítás OK - munkalap lezárva!");
+        } else {
+            System.out.print("\nKiszállítás NOK: " + messageShip.getTransactionMessage());
         }
     }
 

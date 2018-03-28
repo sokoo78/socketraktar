@@ -32,7 +32,7 @@ public class Worksheet implements Serializable {
     private String externalPartNumber;      // Vevői cikkszám
     private boolean isCooled;               // Hűtendő vagy normál
     private int numberOfPallets;            // Paletták száma
-    private int unloadedPallets;            // Paletták száma
+    private int processedPallets;            // Paletták száma
 
     // Tárolási adatok - szerver adja meg
     private List<Integer> locations;
@@ -43,17 +43,25 @@ public class Worksheet implements Serializable {
         this.workSheetType = worktype;
     }
 
-    // Műveletek
-
     // Paletta kipakolás
     Pallet takePallet() {
         Pallet pallet = new Pallet(this.getRenterID(), this.getExternalPartNumber());
-        if (this.unloadedPallets < this.numberOfPallets){
-            unloadedPallets++;
+        if (this.processedPallets < this.numberOfPallets){
+            processedPallets++;
         } else {
             return null; // Nincs több paletta
         }
         return pallet;
+    }
+
+    // Paletta kipakolás
+    boolean processOnePallet() {
+        if (this.processedPallets < this.numberOfPallets){
+            processedPallets++;
+            return true;
+        } else {
+            return false; // Nincs több paletta
+        }
     }
 
     // Getterek, Setterek
@@ -146,7 +154,7 @@ public class Worksheet implements Serializable {
         this.numberOfPallets = numberOfPallets;
     }
 
-    void setConfirmed() {
+    void setCompleted() {
         isCompleted = true;
     }
 
@@ -180,6 +188,10 @@ public class Worksheet implements Serializable {
 
     void setProcessing() {
         this.isProcessing = true;
+    }
+
+    public int getProcessedPallets(){
+        return this.processedPallets;
     }
 
 }

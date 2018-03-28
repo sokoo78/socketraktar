@@ -1,6 +1,7 @@
 package com.berraktar;
 
 import java.io.Serializable;
+import java.util.List;
 
 class MessageProcess extends Message implements Serializable {
 
@@ -12,6 +13,7 @@ class MessageProcess extends Message implements Serializable {
     private int pallets;
     private String externalPartNumber;
     private String internalPartNumber;
+    private List<Integer> locations;
     private int terminalID;
 
     // Konstruktorok
@@ -62,4 +64,11 @@ class MessageProcess extends Message implements Serializable {
         return terminalID;
     }
 
+    public List<Integer> getLocations() {
+        return locations;
+    }
+
+    void setLocations(List<Integer> locations) {
+        this.locations = locations;
+    }
 }

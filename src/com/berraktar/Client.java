@@ -1,6 +1,5 @@
-package com.berraktar;
-
 // Socket kliens
+package com.berraktar;
 
 import java.io.*;
 import java.net.Socket;

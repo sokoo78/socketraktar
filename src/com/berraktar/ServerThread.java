@@ -1,6 +1,5 @@
+// Külön szerver szál a klienseknek
 package com.berraktar;
-
-// Külön szál a klienseknek
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -39,15 +38,17 @@ class ServerThread extends Thread {
 
             // Beérkező objektumok feldolgozása
             while ((object = objectInputStream.readObject()) != null){
-                if (object instanceof MessageCreate)    callCreate(objectOutputStream, (MessageCreate) object, employee.getName());
-                if (object instanceof MessageReserve)   callReserve(objectOutputStream, (MessageReserve) object, employee.getName());
-                if (object instanceof MessageActivate)  callActivate(objectOutputStream, (MessageActivate) object, employee.getName());
-                if (object instanceof MessageProcess)   callProcess(objectOutputStream, (MessageProcess) object, employee.getName());
-                if (object instanceof MessageUnload)    callUnload(objectOutputStream, (MessageUnload) object, employee.getName());
-                if (object instanceof MessageComplete)  callComplete(objectOutputStream, (MessageComplete) object, employee.getName());
-                if (object instanceof MessageOrder)     callOrder(objectOutputStream, (MessageOrder) object, employee.getName());
-                if (object instanceof MessageServerTest)       callServerTest(objectOutputStream, (MessageServerTest) object, employee.getName());
-                if (object instanceof MessageReport)    callReport(objectOutputStream, (MessageReport) object, employee.getName());
+                if (object instanceof MessageCreate)     callCreate(objectOutputStream, (MessageCreate) object, employee.getName());
+                if (object instanceof MessageReserve)    callReserve(objectOutputStream, (MessageReserve) object, employee.getName());
+                if (object instanceof MessageActivate)   callActivate(objectOutputStream, (MessageActivate) object, employee.getName());
+                if (object instanceof MessageProcess)    callProcess(objectOutputStream, (MessageProcess) object, employee.getName());
+                if (object instanceof MessageUnload)     callUnload(objectOutputStream, (MessageUnload) object, employee.getName());
+                if (object instanceof MessageLoad)       callLoad(objectOutputStream, (MessageLoad) object, employee.getName());
+                if (object instanceof MessageStore)      callStore(objectOutputStream, (MessageStore) object, employee.getName());
+                if (object instanceof MessageOrder)      callOrder(objectOutputStream, (MessageOrder) object, employee.getName());
+                if (object instanceof MessageShip)       callShip(objectOutputStream, (MessageShip) object, employee.getName());
+                if (object instanceof MessageServerTest) callServerTest(objectOutputStream, (MessageServerTest) object, employee.getName());
+                if (object instanceof MessageReport)     callReport(objectOutputStream, (MessageReport) object, employee.getName());
             }
 
             // Zárjuk a kapcsolatot
@@ -87,25 +88,39 @@ class ServerThread extends Thread {
         System.out.println(userName + " munkalapot küldött aktiválásra - transactionID: " + messageActivate.getTransactionID());
     }
 
-    // Beérkeztetés
+    // Munkalap feldolgozásának indítása
     private void callProcess(ObjectOutputStream oos, MessageProcess messageProcess, String userName) throws IOException {
         messageProcess = WorkOrders.ProcessWorkSheet(messageProcess);
         oos.writeObject(messageProcess);
         System.out.println(userName + " munkalapot küldött végrehajtásra - transactionID: " + messageProcess.getTransactionID());
     }
 
-    // Kirakodás a terminálra
+    // Kirakodás kocsiból terminálra
     private void callUnload(ObjectOutputStream oos, MessageUnload messageUnload, String userName) throws IOException {
         messageUnload = warehouse.DoUnloading(messageUnload);
         oos.writeObject(messageUnload);
         System.out.println(userName + " munkalapot küldött kirakodásra - transactionID: " + messageUnload.getTransactionID());
     }
 
+    // Kirakodás raktárból terminálra
+    private void callLoad(ObjectOutputStream oos, MessageLoad messageLoad, String userName) throws IOException {
+        messageLoad = warehouse.DoLoading(messageLoad, accounting);
+        oos.writeObject(messageLoad);
+        System.out.println(userName + " munkalapot küldött rakodásra - transactionID: " + messageLoad.getTransactionID());
+    }
+
     // Berakodás a raktárba
-    private void callComplete(ObjectOutputStream oos, MessageComplete messageComplete, String userName) throws IOException {
-        messageComplete = warehouse.DoStoring(messageComplete, accounting);
-        oos.writeObject(messageComplete);
-        System.out.println(userName + " munkalapot küldött lezárásra - transactionID: " + messageComplete.getTransactionID());
+    private void callStore(ObjectOutputStream oos, MessageStore messageStore, String userName) throws IOException {
+        messageStore = warehouse.DoStoring(messageStore, accounting);
+        oos.writeObject(messageStore);
+        System.out.println(userName + " munkalapot küldött lezárásra - transactionID: " + messageStore.getTransactionID());
+    }
+
+    // Kirakodás a kocsiba
+    private void callShip(ObjectOutputStream oos, MessageShip messageShip, String userName) throws IOException {
+        messageShip = warehouse.DoShipping(messageShip, accounting);
+        oos.writeObject(messageShip);
+        System.out.println(userName + " munkalapot küldött lezárásra - transactionID: " + messageShip.getTransactionID());
     }
 
     // Jelentések
