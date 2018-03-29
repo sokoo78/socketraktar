@@ -1,7 +1,7 @@
 package com.berraktar;
 
 import java.io.*;
-import java.util.Objects;
+import java.time.LocalDateTime;
 
 public class Storekeeper extends Employee {
 
@@ -21,17 +21,17 @@ public class Storekeeper extends Employee {
     }
 
     // Raktáros menü
-    static void ShowMenu(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+    static synchronized void ShowMenu(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         System.out.print(menu);
         String input = br.readLine();
         while(!input.equals("3")) {
             switch (input) {
                 case "1":
-                    Storekeeper.doReceiving(oos, ois);
+                    doReceiving(oos, ois);
                     break;
                 case "2":
-                    Storekeeper.doShipping(oos, ois);
+                    doShipping(oos, ois);
                     break;
                 default:
                     System.out.println("A megadott menüpont nem létezik! (" + input + ")");
@@ -44,22 +44,22 @@ public class Storekeeper extends Employee {
     }
 
     // Bevételzés
-    private static void doReceiving(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+    private static synchronized void doReceiving(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
 
         // Munkalap adatok lekérése a szerverről
         MessageProcess messageProcess = getMessageProcess(oos, ois);
 
-        // Paletták szkennelése - TODO és ellenőrzése (jegyzőkönyv)
-        for (int i = 0; i < Objects.requireNonNull(messageProcess).getPallets(); i++) {
-            ScanNextPallet(messageProcess.getExternalPartNumber(), i);
-            messageProcess.setInternalPartNumber(generateInternalPartNumber(messageProcess));
+        // Paletták szkennelése és ellenőrzése
+        for (int i = 0; i < (messageProcess != null ? messageProcess.getPallets() : 0); i++) {
+            ScanAndCheckNextPallet(oos, ois, messageProcess, i+1);
+            messageProcess.setInternalPartNumber(generateInternalPartNumber(messageProcess, i+1));
 
             // Paletta lejelentése a szervernek - kirakás a terminálra
             MessageUnload messageUnload = new MessageUnload(messageProcess.getTransactionID(), messageProcess.getInternalPartNumber());
             oos.writeObject(messageUnload);
             messageUnload = (MessageUnload)ois.readObject();
             if (messageUnload.isApproved()){
-                System.out.print("Paletta sikeresen kirakva a " + messageProcess.getTerminalID() + " terminálra!");
+                System.out.print("Paletta sikeresen kirakva a(z) " + messageProcess.getTerminalID() + " számú terminálra!");
             } else {
                 System.out.print("Paletta kirakás elutasítva!");
                 System.out.print("\nSzerver üzenete: " + messageUnload.getTransactionMessage());
@@ -68,9 +68,8 @@ public class Storekeeper extends Employee {
         }
 
         // Munkalap lejelentése a szervernek - betárolás a lokációkba
-        System.out.print("Beszállítási tranzakció készrejelentése (i/n): ");
-        boolean isConfirmed = UserIO.readBoolean();
-        if (isConfirmed){
+        System.out.print("\nBeszállítási tranzakció készrejelentése (i/n): ");
+        if (UserIO.readBoolean()){
             MessageStore messageStore = new MessageStore(messageProcess.getTransactionID());
             messageStore.setRenterID(messageProcess.getRenterID());
             messageStore.setInternalPartNumber(messageProcess.getInternalPartNumber());
@@ -86,34 +85,33 @@ public class Storekeeper extends Employee {
     }
 
     // Kiszállítás
-    private static void doShipping(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+    private static synchronized void doShipping(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
 
         // Munkalap adatok lekérése a szerverről
         MessageProcess messageProcess = getMessageProcess(oos, ois);
 
-        // Paletták szkennelése - TODO és ellenőrzése (jegyzőkönyv)
+        // Paletták szkennelése és ellenőrzése
         for (int i = 0; i < (messageProcess != null ? messageProcess.getPallets() : 0); i++) {
 
             // Cikkszám és paletta ellenőrzése
-            ScanNextPallet(messageProcess.getExternalPartNumber(), i+1);
+            ScanAndCheckNextPallet(oos, ois, messageProcess, i+1);
 
             // Paletta lejelentése a szervernek - kirakás a terminálra
             MessageLoad messageLoad = new MessageLoad(messageProcess.getTransactionID());
             oos.writeObject(messageLoad);
             messageLoad = (MessageLoad)ois.readObject();
             if (messageLoad.isApproved()){
-                System.out.print("Paletta sikeresen kitárolva a(z) " + messageProcess.getTerminalID() + " számú terminálra!");
+                System.out.print("\nPaletta sikeresen kitárolva a(z) " + messageProcess.getTerminalID() + " számú terminálra!");
             } else {
-                System.out.print("Paletta kitárolás elutasítva!");
+                System.out.print("\nPaletta kitárolás elutasítva!");
                 System.out.print("\nSzerver üzenete: " + messageLoad.getTransactionMessage());
                 return;
             }
         }
 
         // Munkalap lejelentése a szervernek - kiszállítás a terminálról
-        System.out.print("\n\nKiszállítási tranzakció készrejelentése (i/n): ");
-        boolean isConfirmed = UserIO.readBoolean();
-        if (isConfirmed){
+        System.out.print("\nKiszállítási tranzakció készrejelentése (i/n): ");
+        if (UserIO.readBoolean()){
             MessageShip messageShip = new MessageShip(messageProcess != null ? messageProcess.getTransactionID() : 0);
             oos.writeObject(messageShip);
             messageShip = (MessageShip)ois.readObject();
@@ -127,7 +125,7 @@ public class Storekeeper extends Employee {
     }
 
     // Munkalap adatok lekérése
-    private static MessageProcess getMessageProcess(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+    private synchronized static MessageProcess getMessageProcess(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         System.out.print("Tranzakció azonosító: "); // Munkalap sorszáma
         MessageProcess messageProcess = new MessageProcess(Integer.parseInt(br.readLine()));
@@ -143,23 +141,43 @@ public class Storekeeper extends Employee {
         return messageProcess;
     }
 
-    // Paletta szkennelése, cikkszám és paletta ellenőrzése - TODO paletta ellenőrzés (jegyzőkönyv)
-    private static void ScanNextPallet(String externalPartNumber, int i) throws IOException {
+    // Paletta szkennelése, cikkszám és paletta ellenőrzése
+    private static synchronized void ScanAndCheckNextPallet(ObjectOutputStream oos, ObjectInputStream ois, MessageProcess messageProcess, int i) throws IOException, ClassNotFoundException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         System.out.print("\nSzkenneld be az " + i + ". palettát (Bérlő cikkszáma: " +
-                externalPartNumber + "): ");
+                messageProcess.getExternalPartNumber() + "): ");
         String scannedPartNumber = br.readLine();
-        while (!scannedPartNumber.equalsIgnoreCase(externalPartNumber)) {
+        while (!scannedPartNumber.equalsIgnoreCase(messageProcess.getExternalPartNumber())) {
             System.out.println("A beszkennelt cikkszám nem egyezik a foglaláson szereplő cikkszámmal!");
             System.out.print("Szkenneld be az " + i + ". palettát (Bérlő cikkszáma: " +
-                    externalPartNumber + "): ");
+                    messageProcess.getExternalPartNumber() + "): ");
             scannedPartNumber = br.readLine();
+        }
+        System.out.print("Jegyzőkönyv készítése (i/n): ");
+        if (UserIO.readBoolean()){
+            writeDeviationProtocol(oos, ois, messageProcess.getTransactionID(), LocalDateTime.now());
+        }
+    }
+
+    // Jegyzőkönyv írás
+    private static synchronized void writeDeviationProtocol(ObjectOutputStream oos, ObjectInputStream ois, int transactionID, LocalDateTime transactionDate) throws IOException, ClassNotFoundException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        Protocol protocol = new Protocol(transactionID, transactionDate);
+        System.out.println("Írja be a jegyzőkönyv szövegét: ");
+        protocol.setTransactionMessage(br.readLine());
+        oos.writeObject(protocol);
+        protocol = (Protocol)ois.readObject();
+        if (protocol.isApproved()) {
+            System.out.print("\nJegyzőkönyv mentve!\n");
+        } else {
+            System.out.print("\nJegyzőkönyv elutasítva!");
+            System.out.print("\nSzerver üzenete: " + protocol.getTransactionMessage() + "\n");
         }
     }
 
     // Belső cikkszám generálás - vevőkódot hozzáadja prefixumként, lehet szofisztikálni ha kell..
-    static String generateInternalPartNumber(MessageProcess messageProcess) {
-        return messageProcess.getRenterID() + "-" + messageProcess.getExternalPartNumber();
+    static synchronized String generateInternalPartNumber(MessageProcess messageProcess, Integer i) {
+        return messageProcess.getRenterID() + "-" + messageProcess.getExternalPartNumber() + "-" + i.toString();
     }
 
 }

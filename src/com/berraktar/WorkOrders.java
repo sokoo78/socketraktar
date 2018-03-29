@@ -1,14 +1,11 @@
 package com.berraktar;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-final class WorkOrders implements Serializable {
+final class WorkOrders {
 
-    // Szerializációhoz kell
-    private static final long serialVersionUID = 5107772686822488727L;
     // Munkalap számláló
     private static AtomicInteger workCounter;
     // Munkalapok
@@ -36,7 +33,6 @@ final class WorkOrders implements Serializable {
 
     // Munkalapok mentése
     static synchronized void saveWorkOrdersState() {
-    // Adatok mentése fájlba
     Persistency.SaveObject(worksheets, "WorkSheets.ser");
     Persistency.SaveObject(workCounter, "WorkCounter.ser");
 }

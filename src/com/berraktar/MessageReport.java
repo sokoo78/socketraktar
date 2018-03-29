@@ -2,12 +2,12 @@ package com.berraktar;
 
 import java.io.Serializable;
 
-public class MessageReport implements Serializable {
+class MessageReport implements Serializable {
     // Szerializációhoz kell
     private static final long serialVersionUID = 5843645352677089659L;
 
     // Jelentés típusok
-    public enum ReportType {Renters, Worksheets, Locations, Terminals, Receivings, Shipments}
+    public enum ReportType {Renters, Worksheets, Locations, TerminalReservations, TerminalPallets, Receivings, Shipments, Protocols}
 
     // Jelentés tulajdonságai
     private ReportType reportType;
@@ -20,15 +20,15 @@ public class MessageReport implements Serializable {
 
     // Getterek, setterek
 
-    public ReportType getReportType() {
+    ReportType getReportType() {
         return reportType;
     }
 
-    public String getReply() {
+    String getReply() {
         return reply;
     }
 
-    public void setReply(String reply) {
+    void setReply(String reply) {
         this.reply = reply;
     }
 }

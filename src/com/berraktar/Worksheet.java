@@ -34,7 +34,7 @@ public class Worksheet implements Serializable {
     private int numberOfPallets;            // Paletták száma
     private int processedPallets;            // Paletták száma
 
-    // Tárolási adatok - szerver adja meg
+    // Tárolási adatok
     private List<Integer> locations;
     private int terminalID;
 
@@ -44,7 +44,7 @@ public class Worksheet implements Serializable {
     }
 
     // Paletta kipakolás
-    Pallet takePallet() {
+    Pallet takeOnePallet() {
         Pallet pallet = new Pallet(this.getRenterID(), this.getExternalPartNumber());
         if (this.processedPallets < this.numberOfPallets){
             processedPallets++;
@@ -178,20 +178,8 @@ public class Worksheet implements Serializable {
         this.locations = locations;
     }
 
-    public LocalDateTime getReceivedDate() {
-        return receivedDate;
-    }
-
-    public void setReceivedDate(LocalDateTime receivedDate) {
-        this.receivedDate = receivedDate;
-    }
-
     void setProcessing() {
         this.isProcessing = true;
-    }
-
-    public int getProcessedPallets(){
-        return this.processedPallets;
     }
 
 }

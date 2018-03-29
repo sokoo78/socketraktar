@@ -17,8 +17,9 @@ final class SystemTests {
             "3. Bevételezés teszt\n\t" +
             "4. Rendelés teszt\n\t" +
             "5. Kiszállítás teszt\n\t" +
-            "6. Szerver teszt\n\t" +
-            "7. Kilépés\n" +
+            "6. Jegyzőkönyv teszt\n\t" +
+            "7. Szerver teszt\n\t" +
+            "8. Kilépés\n" +
             "Válassz menüpontot: ";
 
     // Teszt menü
@@ -26,7 +27,7 @@ final class SystemTests {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         System.out.print(menu);
         String input = br.readLine();
-        while(!input.equals("7")){
+        while(!input.equals("8")){
             switch(input){
                 case "1":
                     SystemTests.ReservationTest(oos, ois);
@@ -44,6 +45,9 @@ final class SystemTests {
                     SystemTests.doShippingTest(oos, ois);
                     break;
                 case "6":
+                    SystemTests.doProtocolTest(oos, ois);
+                    break;
+                case "7":
                     SystemTests.doServerTest(oos, ois);
                     break;
                 default:
@@ -152,7 +156,7 @@ final class SystemTests {
 
         // Paletták szkennelése és kipakolása
         for (int i = 0; i < messageProcess.getPallets(); i++) {
-            messageProcess.setInternalPartNumber(generateInternalPartNumber(messageProcess));
+            messageProcess.setInternalPartNumber(generateInternalPartNumber(messageProcess, i + 1));
             MessageUnload messageUnload = new MessageUnload(messageProcess.getTransactionID(), messageProcess.getInternalPartNumber());
             messageUnload.setTerminalID(messageProcess.getTerminalID());
             oos.writeObject(messageUnload);
@@ -260,6 +264,19 @@ final class SystemTests {
             System.out.print("\nKiszállítás OK - munkalap lezárva!");
         } else {
             System.out.print("\nKiszállítás NOK: " + messageShip.getTransactionMessage());
+        }
+    }
+
+    // Jegyzőkönyv teszt
+    private static void doProtocolTest(ObjectOutputStream oos, ObjectInputStream ois) throws IOException, ClassNotFoundException {
+        Protocol protocol = new Protocol(1, LocalDateTime.now());
+        protocol.setTransactionMessage("Teszt jegyzőkönyv szöveg - a pisztácia elfogyott, csokoládé nem is volt!");
+        oos.writeObject(protocol);
+        protocol = (Protocol)ois.readObject();
+        if (protocol.isApproved()) {
+            System.out.print("OK");
+        } else {
+            System.out.print("NOK - Szerver üzenete: " + protocol.getTransactionMessage());
         }
     }
 

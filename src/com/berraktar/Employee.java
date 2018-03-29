@@ -2,7 +2,7 @@ package com.berraktar;
 
 import java.io.Serializable;
 
-public class Employee implements Serializable {
+class Employee implements Serializable {
 
     // Ez a szerializációhoz kell
     private static final long serialVersionUID = 2435010565803855201L;
@@ -26,24 +26,24 @@ public class Employee implements Serializable {
 
     // Getterek, setterek
 
-    public String getName() {
+    String getName() {
         if (this.name != null) return this.name;
         else return "n/a";
     }
 
-    public int getPositionID(){
+    int getPositionID(){
         return this.position.ordinal()+1;
     }
 
-    public UserType getPosition() {
+    UserType getPosition() {
         return position;
     }
 
-    public boolean isLoggedin() {
+    boolean isLoggedin() {
         return isLoggedin;
     }
 
-    public void setLoggedin() {
+    void setLoggedin() {
         isLoggedin = true;
     }
 }

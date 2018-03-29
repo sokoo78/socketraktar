@@ -64,10 +64,6 @@ class MessageProcess extends Message implements Serializable {
         return terminalID;
     }
 
-    public List<Integer> getLocations() {
-        return locations;
-    }
-
     void setLocations(List<Integer> locations) {
         this.locations = locations;
     }

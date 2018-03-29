@@ -274,7 +274,7 @@ public class Warehouse implements Serializable {
         }
 
         // Van még paletta a kocsin?
-        Pallet pallet = worksheet.takePallet();
+        Pallet pallet = worksheet.takeOnePallet();
         if (pallet == null) {
             messageUnload.setTransactionMessage("Nincs több paletta a kocsin!");
             return messageUnload;
@@ -329,7 +329,7 @@ public class Warehouse implements Serializable {
 
         // Visszautasítás: palettaszám nem egyezik a foglalt lokációk számával
         if (palletList.size() != reservedLocations.size()) {
-            messageStore.setTransactionMessage("Palettaszám nem egyezik a foglalt lokációk számával!");
+            messageStore.setTransactionMessage("Palettaszám nem egyezik a foglalt lokációk számával! ( " + palletList.size() + " vs " + reservedLocations.size() + " )");
             return messageStore;
         }
 
@@ -495,7 +495,7 @@ public class Warehouse implements Serializable {
         }
 
         for (int i = 1; i < maxLocations; i++) {
-            if (!locations.get(i).isReserved()){
+            if (locations.get(i) == null || !locations.get(i).isReserved()){
                 return i;
             }
         }

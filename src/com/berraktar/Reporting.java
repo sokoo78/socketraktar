@@ -15,7 +15,9 @@ final class Reporting {
             "2. Munkalap lista\n\t" +
             "3. Lokáció lista\n\t" +
             "4. Terminál foglalási lista\n\t" +
-            "5. Kilépés\n" +
+            "5. Terminál paletta lista\n\t" +
+            "6. Jegyzőkönyv lista\n\t" +
+            "7. Kilépés\n" +
             "Válassz menüpontot: ";
 
     // Jelentések menü
@@ -23,7 +25,7 @@ final class Reporting {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         System.out.print(menu);
         String input = br.readLine();
-        while(!input.equals("5")){
+        while(!input.equals("7")){
             switch(input){
                 case "1":
                     GetReport(oos, ois, MessageReport.ReportType.Renters);
@@ -35,7 +37,13 @@ final class Reporting {
                     GetReport(oos, ois, MessageReport.ReportType.Locations);
                     break;
                 case "4":
-                    GetReport(oos, ois, MessageReport.ReportType.Terminals);
+                    GetReport(oos, ois, MessageReport.ReportType.TerminalReservations);
+                    break;
+                case "5":
+                    GetReport(oos, ois, MessageReport.ReportType.TerminalPallets);
+                    break;
+                case "6":
+                    GetReport(oos, ois, MessageReport.ReportType.Protocols);
                     break;
                 default:
                     System.out.println("A megadott menüpont nem létezik! (" + input + ")");
@@ -155,7 +163,7 @@ final class Reporting {
     }
 
     // Terminál foglalások jelentés
-    static synchronized MessageReport TerminalReport(MessageReport messageReport, Warehouse warehouse) {
+    static synchronized MessageReport TerminalReservationReport(MessageReport messageReport, Warehouse warehouse) {
         StringBuilder reply = new StringBuilder();
 
         // Fejléc
@@ -181,6 +189,39 @@ final class Reporting {
         return messageReport;
     }
 
+    // Terminálon levő paletták listája
+    static synchronized MessageReport TerminalPalletReport(MessageReport messageReport, Warehouse warehouse) {
+        StringBuilder reply = new StringBuilder();
+
+        // Fejléc
+        reply.append("\nHűtött terminálon levő paletták\n");
+
+        // Terminál lista
+        int i = 0;
+        Map<String, Pallet> palletList;
+        ConcurrentHashMap<Integer,Terminal> terminals = warehouse.getCooledTerminals();
+        do {
+            for (ConcurrentHashMap.Entry<Integer,Terminal> entry : terminals.entrySet()) {
+                reply.append("\nTerminál ID: ").append(entry.getKey());
+                palletList = entry.getValue().getPalletList();
+                // Paletta lista
+                for (Map.Entry<String, Pallet> subentry : palletList.entrySet()) {
+                    Pallet value = subentry.getValue();
+                    reply.append("\n\t").append(subentry.getKey()).append(" - ").append(value.getRenterID());
+                }
+            }
+            // Fejléc
+            if (i == 0) {
+                reply.append("\n\nNormál terminálon levő paletták\n");
+                terminals = warehouse.getNormalTerminals();
+            }
+            i++;
+        } while (i < 2);
+
+        messageReport.setReply(reply.toString());
+        return messageReport;
+    }
+
     // Terminál lista terminál jelentéshez
     private static void getTerminalList(StringBuilder reply, ConcurrentHashMap<LocalDateTime, List<Integer>> terminals) {
         for (Map.Entry<LocalDateTime, List<Integer>> entry : terminals.entrySet()) {
@@ -188,6 +229,24 @@ final class Reporting {
                 reply.append("\n").append(entry.getKey()).append("\t\t").append(entry.getValue());
             }
         }
+    }
+
+    // Jegyzőkönyv jelentés
+    static MessageReport ProtocolReport(MessageReport messageReport, Map<Integer, List<Protocol>> protocols) {
+        StringBuilder reply = new StringBuilder();
+        reply.append("\nJegyzőkönyv lista\n");
+        for (Map.Entry<Integer, List<Protocol>> entry : protocols.entrySet()) {
+            if (entry != null) {
+                reply.append("\nTranzakció azonosító: ").append(entry.getKey());
+                for (int i = 0; i < entry.getValue().size(); i++) {
+                    Protocol p = entry.getValue().get(i);
+                    reply.append("\n\t").append(i+1).append(": [").append(UserIO.printDate(p.getDate())).append(" | ").
+                            append(p.getEmployee()).append("] ").append(p.getTransactionMessage());
+                }
+            }
+        }
+        messageReport.setReply(reply.toString());
+        return messageReport;
     }
 
 }

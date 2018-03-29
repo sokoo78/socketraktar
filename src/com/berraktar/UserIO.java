@@ -8,10 +8,10 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 
-public final class UserIO {
+final class UserIO {
 
     // Igen vagy Nem szkenner
-    public static boolean readBoolean () throws IOException {
+    static boolean readBoolean() throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         String userinput = "";
         // Csak igen-t vagy nem-et fogadunk el
@@ -25,7 +25,7 @@ public final class UserIO {
     }
 
     // Dátum szkenner
-    public static LocalDateTime readDate(boolean futureDateOnly) throws IOException {
+    static LocalDateTime readDate(boolean futureDateOnly) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         LocalDateTime dateTime = null;
@@ -51,18 +51,18 @@ public final class UserIO {
     }
 
     // Dátum printer
-    public static String printDate(LocalDateTime localDateTime){
+    static String printDate(LocalDateTime localDateTime){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         return formatter.format(localDateTime);
     }
 
     // Dátum ellenőrzése, hogy adott intervallumon belül van-e
-    public static boolean DateisInRange(LocalDateTime startDate, LocalDateTime endDate, LocalDateTime actualDate) {
+    static boolean DateisInRange(LocalDateTime startDate, LocalDateTime endDate, LocalDateTime actualDate) {
         return !(actualDate.isBefore(startDate) || actualDate.isAfter(endDate));
     }
 
     // Munkalap kitöltése a foglalási adatokkal
-    public static void fillWorkSheet(Worksheet worksheet, MessageReserve messageReserve) {
+    static void fillWorkSheet(Worksheet worksheet, MessageReserve messageReserve) {
         worksheet.setRenterID(messageReserve.getRenterID());
         worksheet.setExternalPartNumber(messageReserve.getPartNumber());
         worksheet.updateCooled(messageReserve.isCooled());
@@ -71,7 +71,7 @@ public final class UserIO {
     }
 
     // Foglalás adatainak tömör (egy soros) kiíratása
-    public static void printReservation(MessageReserve messageReserve) {
+    static void printReservation(MessageReserve messageReserve) {
         System.out.print("\nID: " + messageReserve.getTransactionID());
         System.out.print("\tBérlő: " + messageReserve.getRenterID());
         System.out.print("\tCikk: " + messageReserve.getPartNumber());
@@ -83,7 +83,7 @@ public final class UserIO {
     }
 
     // Rendelés adatainak tömör (egy soros) kiíratása
-    public static void printOrdering(MessageOrder messageOrder) {
+    static void printOrdering(MessageOrder messageOrder) {
         System.out.print("\nID: " + messageOrder.getTransactionID());
         System.out.print("\tBérlő: " + messageOrder.getRenterID());
         System.out.print("\tCikk: " + messageOrder.getPartNumber());

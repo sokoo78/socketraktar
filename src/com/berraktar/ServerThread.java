@@ -47,8 +47,9 @@ class ServerThread extends Thread {
                 if (object instanceof MessageStore)      callStore(objectOutputStream, (MessageStore) object, employee.getName());
                 if (object instanceof MessageOrder)      callOrder(objectOutputStream, (MessageOrder) object, employee.getName());
                 if (object instanceof MessageShip)       callShip(objectOutputStream, (MessageShip) object, employee.getName());
-                if (object instanceof MessageServerTest) callServerTest(objectOutputStream, (MessageServerTest) object, employee.getName());
+                if (object instanceof Protocol)          callProtocol(objectOutputStream, (Protocol) object, employee.getName());
                 if (object instanceof MessageReport)     callReport(objectOutputStream, (MessageReport) object, employee.getName());
+                if (object instanceof MessageServerTest) callServerTest(objectOutputStream, (MessageServerTest) object, employee.getName());
             }
 
             // Zárjuk a kapcsolatot
@@ -141,8 +142,13 @@ class ServerThread extends Thread {
                 oos.writeObject(messageReport);
                 System.out.println(userName + " jelentést kért: " + messageReport.getReportType());
                 break;
-            case Terminals:
-                messageReport = Reporting.TerminalReport(messageReport, warehouse);
+            case TerminalReservations:
+                messageReport = Reporting.TerminalReservationReport(messageReport, warehouse);
+                oos.writeObject(messageReport);
+                System.out.println(userName + " jelentést kért: " + messageReport.getReportType());
+                break;
+            case TerminalPallets:
+                messageReport = Reporting.TerminalPalletReport(messageReport, warehouse);
                 oos.writeObject(messageReport);
                 System.out.println(userName + " jelentést kért: " + messageReport.getReportType());
                 break;
@@ -150,7 +156,20 @@ class ServerThread extends Thread {
                 break;
             case Shipments:
                 break;
+            case Protocols:
+                messageReport = Reporting.ProtocolReport(messageReport, DeviationProtocolls.getProtocols());
+                oos.writeObject(messageReport);
+                System.out.println(userName + " jelentést kért: " + messageReport.getReportType());
+                break;
         }
+    }
+
+    // Jegyzőkönyv
+    private void callProtocol(ObjectOutputStream oos, Protocol protocol, String userName) throws IOException {
+        protocol.setEmployee(userName);
+        protocol = DeviationProtocolls.addProtocol(protocol);
+        oos.writeObject(protocol);
+        System.out.println(userName + " jegyzőkönyvet küldött - transactionID: " + protocol.getTransactionID());
     }
 
     // Szerver teszt
